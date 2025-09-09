@@ -3,7 +3,7 @@
 ## Illicit Substance Use and Mental Health Among Multiracial Young Adults in the United States
 
 ## Research Question
-To what extent do illicit substance use and mental health issues (e.g. major depressive episode, suicidal thoughts) correlate with each other among multiracial youth aged 18-25?
+To what extent do illicit substance use and mental health issues (e.g. major depressive episode, suicidal thoughts) correlate with each other among multiracial young adults aged 18-25?
 
 ## Data Source
 To answer my research question, I utilize the 2023 NSDUH (National Survey on Drug Use and Health) public use data, which is the leading source of population-based statistical data on behavioral health information like tobacco use, alcohol use, drug use, and mental health.
