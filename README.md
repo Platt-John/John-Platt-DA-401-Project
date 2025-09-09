@@ -12,7 +12,7 @@ To answer my research question, I utilize the 2023 NSDUH (National Survey on Dru
 I use comparative bar plots and 2 sample z-tests to see an initial glance of relationships. Then, I use logistic regression and machine learning to see the extent and strength of the relationships. 
 
 ## Expected Timeline
-
+https://github.com/Platt-John/John-Platt-DA-401-Project/blob/main/figures/Project%20Timeline.png
 
 ## Google Drive 
 https://drive.google.com/drive/u/0/folders/1wrYRXpkUemxqu_DIjcFd96PC9m-JioWf
