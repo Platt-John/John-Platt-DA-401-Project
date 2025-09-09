@@ -1,22 +1,21 @@
-# DA401 Capstone Project - [Your Name]
+# DA401 Capstone Project - John Platt
 
-## Project Title
-(Write a clear, descriptive title for your project.)
+## Illicit Substance Use and Mental Health Among Multiracial Young Adults in the United States
 
 ## Research Question
-What question are you trying to answer?
+To what extent do illicit substance use and mental health issues (major depressive episode, suicidal thoughts) correlate with each other among multiracial youth aged 18-25?
 
 ## Data Source
-Where is your data coming from? 
+To answer my research question, I utilize the 2023 NSDUH (National Survey on Drug Use and Health) public use data, which is the leading source of population-based statistical data on behavioral health information like tobacco use, alcohol use, drug use, and mental health.
 
 ## Methods
-Which methods or models will you use? 
+I use comparative bar plots and 2 sample z-tests to see an initial glance of relationships. Then, I use logistic regression and machine learning to see the extent and strength of the relationships. 
 
 ## Expected Timeline
-What do you expect to produce every week?
+
 
 ## Google Drive 
-[Google Drive link if you have any]
+https://drive.google.com/drive/u/0/folders/1wrYRXpkUemxqu_DIjcFd96PC9m-JioWf
 
 ## Repository Structure
 - `code/`: All analysis scripts or notebooks
