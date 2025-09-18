@@ -1,3 +1,3 @@
 # Code Folder
 
-This folder contains code files for your project.
+This folder contains code files for my project.
