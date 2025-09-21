@@ -38,7 +38,7 @@ There are variables about the survey design that we will need to account for in 
 Below is a table that describes the key variables that we include from this 2023 NSDUH dataset:
 
 ```{r dataframe on variables}
-# R version: 4.2.3
+# R version: 4.5.1
 library(knitr) #for table display
 #Create vector called variable that has different variables of the data
 variable=c('ANALWT2_C','VESTR_C','VEREP','IRSEX','CATAGE','NEWRACE2','EDUHIGHCAT','IRWRKSTAT18','IRHHSIZ2','IRPRVHLT','INCOME','IRALCFY','IRMJFY',"IRCOCFY",'IRCIGFM','IRNICVAP30N','IRHALLUCYFQ','IRALCBNG30D','SUTINPPY','IRDSTNRV12','IRDSTEFF12','IRIMPCONCN','IRSUICTHNK','IRAMDEYR','MHTINPPY')
