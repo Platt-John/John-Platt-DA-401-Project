@@ -1,0 +1,4 @@
+"0","#File -> New Project -> Set existing GitHub Repository as working directory"
+"0","#Load in the data"
+"0","load(""NSDUH_2023.Rdata"")"
+"0","data"

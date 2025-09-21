@@ -1,0 +1,863 @@
+---
+title: "The Impact of Student Demographics, Sleep, and Study Habits on Academic Performance"
+author: "John Platt"
+date: "11/13/2022"
+output: 
+  html_document:
+    code_folding: hide
+---
+## Introduction 
+We aim to explore and analyze data on study habits and academic performance to answer to following research questions:
+  
+  * What are the hardest types of majors (STEM vs. non-STEM)?
+  * What does academic performance (current GPA, last exam scores) look like across each student class (Freshman,Sophomore,Junior,Senior)?
+  * What is the relationship between sleep/study habits and academic performance?
+  * What is the relationship between sleep hours and study hours
+  - What does academic performance look like with more passive study methods vs. less passive study methods?
+  - What about the relationship between long-term (GPA) and short-term (last exam grade) academic performance?
+
+College students employ a plethora of study techniques. When an exam is coming up in a week, some decide to start studying a week ahead of time, while others decide to cram studying in the day before. We aspire to investigate the effects of sleep and study habits on academic performance to determine what the proper tradeoff could be between sleep and time spent studying. For example, when is it worth to give up an extra hour of sleep in exchange for another hour of studying to improve performance on a test? Also, we believe it would be interesting to determine which majors are the most difficult to assist high school students or college students who are trying to decide on a college major. We believe this study can help improve lifestyle habits and study habits of current college students. As college students, we too hope that this study will help improve our own lifestyle and study habits so that our academic performance can be improved.
+
+# Dataset->academics_Denison.csv
+```{r import libaries,warning=FALSE,message=FALSE}
+library(tidyverse)
+library(knitr)
+library(ggthemes)
+library(ggpubr)
+library(tidymodels)
+```
+
+This dataset contains data with 47 observations (sample size=47) on Denison University demographics (class,major), study habits, sleep, and academic performance at Denison University (GPA,last exam scores). This data was collected via an anonymous google survey asking Denison University students from the Baseball and Track team questions about their academic performance, study habits, sleep, and demographics. This sample is intended to represent the Denison student population. Of course, we had to modify a few responses here and there as they weren't in a specified format (e.g. changed names of various classes to just the subjects they were in (like Multivariable Calculus to just math)). Here is a link to the google survey that we used: https://docs.google.com/forms/d/e/1FAIpQLSevY53jPUXFwl6SUReiZmhGiHORdbrQML-g6DqUVxOlzqTRgQ/viewform?usp=sharing
+
+Now we read in the Denison academic data that we collected.
+```{r read in table, message=FALSE, warning=FALSE}
+acad_Denison<-read_csv('academics_Den.csv')
+acad_Denison
+```
+
+# Dataset variable descriptions
+Below is a table that describes the key variables in this Denison academics data shown in the table above and another table that specifies what the different values of the study_method variable (codes) mean.
+
+```{r dataframe on variables}
+#Create vector called variable that has different variables of the data
+variable=c('exam_grade','study_hours','study_days','exam_subject','major','class','sleep_hours','study_method','GPA')
+#Create vector called variable_type that shows the data types of the different variables in the data
+variable_type=c('continuous','continuous','discrete','nominal','nominal','ordinal','continuous','nominal','continuous')
+#Create vector called variable_description that describes what the variables are
+variable_description=c("The grade (%) on a Denison students' previous exam","The number of hours a Denison student studied before his/her previous exam","The number of days a Denison student started studying before his/her preivous exam","The subject the previous exam was on (e.g. Math)",
+  "A Denison students' major (e.g. Data Analytics)","The class a Denison student is in (e.g. Freshman,Sophomore...)","The number of hours of sleep a Denison student got before his/her previous exam","How a student studied before his/her previous exam (e.g. RN (re-read notes))","A Denison students' current cumulative GPA")
+#Convert these created vectors into one dataframe
+dataset_desc<-data.frame(variable,variable_type,variable_description)
+#Display table neatly
+kable(dataset_desc)
+```
+
+Here we have a lot of the variables that will crucial to answering our mean question with study_hours and study_days being very important for the study habit data on our project. In addition, we have our needed variables for academic performance (exam_grade,GPA) and other ones such as class that we intend to use to answer our main questions.
+
+# Study method variable key
+```{r create key table}
+#Create vector with the different codes of the study_method variable
+variable_value=c('DS','P','RN','W','RNT','RNP','RNW','RNWP','RNTW','RNTP')
+#Create vector with the meanings of the different codes
+value_meaning=c("Didn't study",'Practice problems','Re-read notes','Practice writings','Re-read notes, textbook','Re-read notes, practice problems','Re-read notes, practice writings',
+                    'Re-read notes, practice writings, practice problems','Re-read notes, textbook, practice writings','Re-read notes, textbook, practice problems')
+study_met_key<-data.frame(variable_value,value_meaning)
+kable(study_met_key)
+```
+
+As you can see, there were a wide range of study techniques that students in our sample implemented. For example, some students in our sample just opted to re-read their notes/textbook before their exam (RNT), while others opted to utilize a variety of study techniques such as RNTP with a description of that code once again shown above. Later in this report, we will show the distribution of the different study techniques we saw in our Denison academic data.
+
+# Data Exploration
+In this section, we perform exploration on the numerical and categorical data in our sample of Denison academic data using the following techniques:
+  
+  * Descriptive statistics to describe our numerical variables
+  
+  * Histograms, boxplots, frequency polygon, and any other appropriate methods for descriptive vizualizations of our numerical variables 
+  
+  * Barplots, pie charts, dotplots, and any other appropriate methods for descriptive vizualizations of our categorical variables 
+  
+  * Frequency tables along with each of the plots of our categorical variables to show more precise numerical data 
+
+# Determine the most common majors/double majors for our data
+First, it might be interesting to see what the most common major or double major in our data is before we move onto multivariate analysis to answer our main question(s). We will now create a barplot to illustrate the number of students that are in each major or double major for our data. We will also summarize the major column of our data using a summary table that will show the number of occurences of each major.
+```{r major barplot}
+#Create summary table
+count_by_major<-group_by(acad_Denison,major)%>%  summarize(major_freq=n(),major_rel_freq=round(n()/nrow(acad_Denison),2))
+#Order summary table by major_freq column
+count_by_major<-count_by_major[order(-count_by_major$major_freq),]
+kable(count_by_major)
+#Create function to make it so the y axis labels aren't decimals
+integer_breaks <- function(n = 5, ...) {
+  fxn <- function(x) {
+    breaks <- floor(pretty(x, n, ...))
+    names(breaks) <- attr(breaks, "labels")
+    breaks
+  }
+  return(fxn)
+}
+#Create barplot that shows the frequencies of the different majors in our data
+ggplot(acad_Denison,aes(x=major, fill=major))+
+geom_bar()+
+  labs(x="Major",y="Number of students",title="Number of students \nin different majors",fill='Major',caption='This bar graph shows the number of students with different\n majors or double majors for our sample of 48 students at Denison.')+
+  scale_y_continuous(breaks=integer_breaks())+
+  theme_few()+
+  coord_flip()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Based on the bar plot and the precise number of occurrences for each major or double major shown above the plot, it appears that the five most common majors or double majors in our Denison academic data is Financial Economics (9 students), Data Analytics (8 students), Communications (5 students), Economics (4 students), and Biology (4 students). Our most common double major was global commerce and economics. 19% of the students in our data majored in Financial Economics, 17% of the students in our data majored in Data Analytics, 11% majored in communications, 9% majored in biology, etc. So, the students in our data seemed to mainly be math and science oriented with majors with some social sciences mixed in here and there too (e.g. communications).
+
+# Looking into our exam subject data
+
+We see what the most common exam subject in our Denison academic data is using a dotplot. In addition, we will use a summary table again to summarize the number of occurences of each subject.
+```{r subject dotplot,message=FALSE,warning=FALSE}
+count_by_examsub<-group_by(acad_Denison,exam_subject)%>%  summarize(exam_subject_freq=n(),exam_subject_rel_freq=round(n()/nrow(acad_Denison),2))
+count_by_examsub<-count_by_examsub[order(-count_by_examsub$exam_subject_freq),]
+kable(count_by_examsub)
+ggplot(acad_Denison,aes(x=exam_subject,fill=exam_subject))+geom_dotplot()+
+  labs(x="Exam Subject",title="The frequency of subjects \nfor the last exam taken",fill='Exam Subject',caption='This dot plot shows the number of students with different\n exam subjects in their most recent exam at Denison.')+
+  scale_y_continuous(NULL,breaks=NULL)+
+  coord_flip()+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Based on the dot plot and the precise number of occurrences for each exam subject shown below the dot plot, it appears the three most common exam subjects in our data were Economics (8 students), Math (7 students), and Psychology (6 students) with all other exam subjects only having 3 students. 17% of the students in our data took an exam in the subject of Economics, 15% of the students in our data took an exam in the subject of math, and 13% of the students in our data took an exam in subject of math. So, it looks like the majors and subjects in our data were commonly more math/science oriented with math-based ones or Economics being the most common.
+
+# Exploring our student class data
+
+Now we see what the frequency of each student class (freshman,sophmore...) in our data is with a pie chart and a summary table that shows the number of occurrences of each student class.
+```{r class pie chart}
+count_by_class<-group_by(acad_Denison,class)%>%  summarize(class_freq=n(),class_rel_freq=round(n()/nrow(acad_Denison),2))
+#Order the count_by_class table by the class count
+class_order=c('Freshman','Sophomore','Junior','Senior')
+count_by_class<-count_by_class[order(match(count_by_class$class,class_order)),]
+kable(count_by_class)
+#Create the labels for our pie chart
+piepercent<- round(100*count_by_class$class_freq/sum(count_by_class$class_freq), 1)
+#Create pie chart
+pie(count_by_class$class_freq,labels=piepercent, main='Frequency of each class for our sample\n of 48 students at Denison',col = rainbow(length(count_by_class$class_freq)))
+legend("topright", c("Freshman","Sophomore","Junior","Senior"), cex = 0.6,
+   fill = rainbow(length(count_by_class$class_freq)))
+```
+
+It appears that the most common student class in our data is junior with 40.4% of the students in the Denison academic data (19/47) being juniors. Then about 25.5% of the students in our data consisted of sophomores (12/47). So we have a slightly disproportionate amount of sophomores and juniors in our sample and this will be important to keep in mind as we move onto our analysis. 
+
+# Exploring our study method data
+
+Now we see a pie chart and frequency table for study method variable.
+```{r study method pie chart,message=FALSE,warning=FALSE}
+acad_Denison<-read_csv('academics_Den.csv')
+#Create frequency table
+count_by_studymethod<-group_by(acad_Denison,study_method)%>%  summarize(studymet_freq=n(),studymet_rel_freq=round(n()/nrow(acad_Denison),2))
+#Sort studymet_freq column of frequency table
+count_by_studymethod<-count_by_studymethod[order(-count_by_studymethod$studymet_freq),]
+kable(count_by_studymethod)
+#Create the labels for our pie chart
+piepercent<- round(100*count_by_studymethod$studymet_freq/sum(count_by_studymethod$studymet_freq), 1)
+#Create pie chart
+pie(count_by_studymethod$studymet_freq,labels=piepercent, main='Frequency of study method at Denison', col = rainbow(length(count_by_studymethod$studymet_freq)))
+legend("right", c('RN','DS','P','RNWP','RNP','RNT','RNTP','RNW','RNTW'),cex=0.6,
+fill = rainbow(length(count_by_studymethod$studymet_freq)))
+
+```
+
+We can see that the five most common study methods in our data were students we just re-read their notes (RN) with 19% or 9 students, students that didn't study at all (DS) with 17% or 8 students, and students that only did practice problems (P) with 17% or 8 students. So, 53% of the students in our data either utilized one study technique (practice problems or re-read notes) or didn't study at all. So, it doesn't really seem like students in our sample studied that much for their last exams. This is important background information to know as we move onto our analysis. 
+
+# Numerical Data Exploration 
+
+Now we look the distribution of our different numerical variables (exam_grade,study_hours,study_days,GPA,sleep_hours) using descriptive statistics and descriptive vizualizations together. 
+
+# Exploring the distribution of last exam grade in our data
+
+Here we create a histogram (shows distribution of numerical variable) along with the descriptive statistics for last exam grade in our data to examine important trends with last exam grade before our main analysis.
+```{r exam grade histogram,message=FALSE,warning=FALSE}
+ggplot(acad_Denison,aes(x=exam_grade,fill='maroon'))+
+  geom_histogram(fill='darkred')+
+  labs(x="Last Exam Grade (%)",y='Number of students',title='Distribution of exam grade',caption='This histogram\n shows the distribution of exam grades.')+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+summary(acad_Denison$exam_grade)
+print('Exam grade mode:')
+#Function to calculate mode
+getmode<-function(x){
+  u<-unique(x)
+  tab<-tabulate(match(x,u))
+  u[tab==max(tab)]
+}
+getmode(acad_Denison$exam_grade)
+print('Exam grade variance:')
+sd(acad_Denison$exam_grade)^2
+print('Exam grade standard deviation:')
+sd(acad_Denison$exam_grade)
+print('Exam grade IQR')
+95-83.25
+print('Exam grade lower outliers:')
+for (exam_grade in acad_Denison$exam_grade){
+   ifelse(exam_grade<83.25-1.5*11.75,print(exam_grade),exam_grade)
+}
+print('Exam grade upper outliers:')
+for (exam_grade in acad_Denison$exam_grade){
+   ifelse(exam_grade>95+1.5*11.75,print(exam_grade),exam_grade)
+}
+```
+
+Looking at our distribution of last exam grade and our summary statistics, the distribution of last exam grade appears to be slightly skewed left and that is confirmed by our summary statistics where the mean is less than the median (89>86.28), meaning the mean was slightly pulled left from values to the left. In addition, the mode (most common last exam grade in our data) is greater than the median (95>89), further confirming our data to be slightly skewed left. We appear to have two outliers on the lower end of this distribution of last exam grades that were found to be 29 and 51 (based on Q1-1.5*IQR lower outlier formula). Our distribution of last exam grades is centered at a median of 89 with a mean of 86.28. Our distribution of exam grades appears to have low to medium variability with an IQR of 11.75, a standard deviation of 12.7193, and a range of about 71 (100-29). Overall, it appears generally that students in our data performed at a high level on their last exams with an average of about a B to B+ and this will be important to keep in mind as we consider the results of our analysis.
+
+# Exploring the distribution of the more long-term academic performance variable in our data: GPA
+
+Here we create a frequency polygon/density plot of relative frequencies (shows distribution of GPA slightly more abstractly than a histogram) along with the descriptive statistics for GPA in our data to explore key trends with GPA before our main analysis.
+```{r GPA density,message=FALSE,warning=FALSE}
+ggplot(acad_Denison,aes(x=GPA))+
+  geom_area(aes(y=(..count..)/sum(..count..)),stat='bin',fill='lightblue')+
+  labs(x="Student GPA",y='Percentage of students',title='Distribution of GPA',caption='This frequency ploygon\n shows the distribution of relative frequencies of GPA.')+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+summary(acad_Denison$GPA)
+#Drop the students from our data that didn't report their GPA so we can create descriptive statistics for our GPA variable
+gpa_only<-drop_na(acad_Denison,GPA)
+print('GPA mode:')
+#Function to calculate mode
+getmode<-function(x){
+  u<-unique(x)
+  tab<-tabulate(match(x,u))
+  u[tab==max(tab)]
+}
+getmode(gpa_only$GPA)
+print('GPA variance:')
+sd(gpa_only$GPA)^2
+print('GPA standard deviation:')
+sd(gpa_only$GPA)
+print('GPA IQR: ')
+3.760-3.208
+print('GPA lower outliers:')
+for (GPA in gpa_only$GPA){
+   ifelse(GPA<3.208-1.5*.552,print(GPA),GPA)
+}
+print('GPA upper outliers:')
+for (GPA in gpa_only$GPA){
+   ifelse(GPA>3.760+1.5*.552,print(GPA),GPA)
+}
+
+```
+
+Looking at our distribution of GPA and our summary statistics, the distribution of GPA appears to be roughly symmetric and that is confirmed by our summary statistics where the mean is about the same as the median (3.381 vs 3.4), meaning the mean wasn't pulled excessively either direction of the distribution. In addition, the mode (most common GPA in our data) is the same as the median (3.4=3.4), further confirming our data to be roughly symmetric. We appear to have one outlier on the lower end of this distribution of GPA that was found to be 1.5 (based on Q1-1.5*IQR lower outlier formula). Our distribution of GPA is centered at a mean of 3.381 with a median of 3.4. Our distribution of GPA appears to have low to medium variability with a standard deviation of .504, an IQR of .552, and a range of about 2.5 (4.0-1.5). Overall, it appears generally that students in our data had decently high levels of GPA and this will be important to keep in mind as we consider the results of our analysis. Let's also note that 11 of the students in our data didn't report their GPA (NA's) because of our GPA question in the survey being optional, but we still had more than 30 students in our sample report their GPA.
+
+# Looking at a summary of the distribution of the number of hours students in our sample studied prior to their last exam
+
+Here we create a boxplot (summarizes distribution) along with the descriptive statistics for study hours in our data to learn notable trends with study hours before our main analysis.
+```{r study hours}
+ggplot(acad_Denison,aes(x=study_hours))+
+  geom_boxplot(fill='purple')+
+  labs(x="Number of hours\n studied for last exam",y='Number of students',title='Distribution of study hours',caption='This boxplot\n summarizes the distribution of study hours.')+
+  scale_y_continuous(NULL,breaks=NULL)+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+summary(acad_Denison$study_hours)
+print('Study hours mode:')
+#Function to calculate mode
+getmode<-function(x){
+  u<-unique(x)
+  tab<-tabulate(match(x,u))
+  u[tab==max(tab)]
+}
+getmode(acad_Denison$study_hours)
+print('Study hours variance:')
+sd(acad_Denison$study_hours)^2
+print('Study hours standard deviation:')
+sd(acad_Denison$study_hours)
+print('Study hours IQR: ')
+5.5-1.5
+print('Study hours lower outliers:')
+for (study_hour in acad_Denison$study_hours){
+   ifelse(study_hour<1.5-1.5*4,print(study_hour),study_hour)
+}
+print('Study hours upper outliers:')
+for (study_hour in acad_Denison$study_hours){
+   ifelse(study_hour>5.5+1.5*4,print(study_hour),study_hour)
+}
+
+```
+
+Looking at our summarized distribution of study hours and our summary statistics, the distribution of study hours appears to be skewed right and that is confirmed by our summary statistics where the mean is greater than the median (4.372>3), meaning the mean was pulled to the right by excessively high study hour values. We appear to have two outliers on the higher end of this distribution of study hours that were found to be 20 hours and 28 hours (based on Q3+1.5*IQR upper outlier formula). Our distribution of study hours is centered at a median of 3 with a mean of 4.372. Our distribution of study hours appears to have high variability with a standard deviation of 5.125 (higher than the mean), an IQR of 4 (almost as high as the mean), and a range of about 28 (28-0). Overall, it appears that students in our data didn't really study that much on average based on a mean of just 4.372 hours, but lets also keep in mind for our analysis that the number of hours that students studied in our sample also greatly varied with two of our variability measures (standard deviation,IQR) being high relative to our mean number of study hours.
+
+# Examining the distribution of the number of days students in our sample started studying prior to the last exam
+
+Here we create a boxplot along with the descriptive statistics for study days in our data to see notable trends with study days before our main analysis.
+```{r study days histogram,message=FALSE,warning=FALSE}
+  integer_breaks <- function(n = 5, ...) {
+  fxn <- function(x) {
+    breaks <- floor(pretty(x, n, ...))
+    names(breaks) <- attr(breaks, "labels")
+    breaks
+  } 
+  return(fxn) }
+ggplot(acad_Denison,aes(x=study_days))+
+  geom_boxplot(fill='lightgreen',bins=30)+
+  labs(x="Number of days a student \nstarted studying before last exam",y='Number of students',title='Distribution of study days',caption='This boxplot\n displays a summary of the distribution of study days.')+
+  scale_x_continuous(breaks=integer_breaks())+
+  scale_y_continuous(NULL,breaks=NULL)+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+summary(acad_Denison$study_days)
+print('Study days mode:')
+#Function to calculate mode
+getmode<-function(x){
+  u<-unique(x)
+  tab<-tabulate(match(x,u))
+  u[tab==max(tab)]
+}
+getmode(acad_Denison$study_days)
+print('Study days variance:')
+sd(acad_Denison$study_days)^2
+print('Study days standard deviation:')
+sd(acad_Denison$study_days)
+print('Study days IQR: ')
+3-1
+print('Study days lower outliers:')
+for (study_day in acad_Denison$study_days){
+   ifelse(study_day<1-1.5*2,print(study_day),study_day)
+}
+print('Study days upper outliers:')
+for (study_day in acad_Denison$study_days){
+   ifelse(study_day>3+1.5*2,print(study_day),study_day)
+}
+
+```
+
+Looking at our summarized distribution of study days and our summary statistics, the distribution of study days appears to be roughly symmetric and that is confirmed by our summary statistics where the mean is about the same as the median (2.149 vs 2), meaning the mean wasn't pulled to the right or left direction excessively. In addition, the highest mode (most common study days in our data) is the same as the median (2=2), further confirming our data to be roughly symmetric. We appear to have four outliers on the upper end of this distribution of study days at about 7, 7, 8, and 10 (found based on Q3+1.5*IQR formula). Our distribution of study days is centered at a mean of 2.149 with a median of 2. Our distribution of study days appears to have high variability with a standard deviation of 2.255 (higher than the mean), an IQR of 2 (almost as high as the mean), and a range of about 10 (10-0). Overall, it appears that students in our data didn't really study that far in advance of their exam on average based on a mean of just 2.149 hours, but lets also keep in mind for our analysis that the number of days that students started studied prior to their last exam in our sample also greatly varied with two of our variability measures (standard deviation,IQR) being high relative to our mean number of study days.
+
+# Assessing the distribution of sleep hours for our sample
+
+Here we create a frequency polygon/density plot along with the descriptive statistics for sleep hours in our data to determine important trends with sleep hours before our main analysis.
+```{r sleep hours,message=FALSE,warning=FALSE}
+ggplot(acad_Denison,aes(x=sleep_hours))+
+  geom_area(aes(y=..count..),stat='bin',fill='darkblue')+
+  labs(x="Number of hours slept\n the night before last exam",y='Number of students',title='Distribution of sleep hours',caption='This Frequency Polygon\n shows the distribution of sleep hours.')+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+summary(acad_Denison$sleep_hours)
+print('Sleep hours mode:')
+#Function to calculate mode
+getmode<-function(x){
+  u<-unique(x)
+  tab<-tabulate(match(x,u))
+  u[tab==max(tab)]
+}
+getmode(acad_Denison$sleep_hours)
+print('Sleep hours variance:')
+sd(acad_Denison$sleep_hours)^2
+print('Sleep hours standard deviation:')
+sd(acad_Denison$sleep_hours)
+print('Sleep hours IQR: ')
+8-6.25
+print('Sleep hours lower outliers:')
+for (sleep_hour in acad_Denison$sleep_hours){
+   ifelse(sleep_hour<6.25-1.5*1.75,print(sleep_hour),sleep_hour)
+}
+print('Sleep hours upper outliers:')
+for (sleep_hour in acad_Denison$sleep_hours){
+   ifelse(sleep_hour>8+1.5*1.75,print(sleep_hour),sleep_hour)
+}
+
+```
+
+Looking at our distribution of sleep hours and our summary statistics, the distribution of sleep hours appears to be roughly symmetric and that is confirmed by our summary statistics where the mean is roughly the same as the median (7.287 vs. 7), meaning the mean wasn't pulled to the right or left direction excessively. In addition, the highest mode (most common sleep hours in our data) is just one hour higher the median (8 vs. 7), further confirming our data to be roughly symmetric. We appear to have one significant outlier on the upper end of this distribution of sleep hours at about 15 hours (found based on Q3+1.5*IQR formula). Our distribution of sleep hours is centered at a mean of 7.287 with a median of 7. Our distribution of sleep hours appears to have a low to moderate variability with a standard deviation of 1.566, an IQR of 1.75, and a range of about 11 (15-4). Overall, it appears that students in our data got decent amounts of sleep before their last exam on average based on a mean of 7.287, yet we should also keep in mind that potentially impactful upper outlier of 15 hours as we move into our analysis. 
+
+# Inferential Statistics 
+
+In this section, we perform one-sample t-tests, confidence intervals for population mean, confidence intervals for population proportion, and one-proportion z-tests to further contribute towards answering our main questions:
+  
+  * What are the hardest types of majors (STEM vs non-STEM)
+  * What does academic performance (current GPA, last exam scores) look like across each student class (Freshman,Sophomore,Junior,Senior)?
+  * What is the relationship between sleep/study habits and academic performance?
+  - What does academic performance look like with more passive study methods vs. less passive study methods?
+  * How does long-term academic performance (GPA) relate to short-term academic performance (last exam scores)?
+  * How about the relationship between sleep hours and study hours?
+  
+# Comparing Denison's average GPA to the average student GPA across all colleges in the US
+
+First, we will perform a one sample t-test given our sample data on GPA to determine if the average GPA at Denison is significantly higher than the average GPA across college students in the US. Information we found on the average GPA across all college students in the US is found on the website:https://blog.prepscholar.com/average-college-gpa-by-major#:~:text=The%20average%20GPA%20for%20students,very%20real%20phenomenon%20for%20colleges.
+
+Based on that website, the average GPA for college students across the US is 3.15. So, the question that we will answer with our one-sample t-test is:
+Does our sample provide convincing evidence that the average GPA at Denison is greater than the known US average of 3.15? We would expect yes because on the fact that Denison is a selective and prestigious school. We will use the typical significance level of a=.05 for this t-test.
+
+However, before we carry out our actual hypothesis test, we need to state our population parameter, hypotheses, test statistic, and assumptions. So...
+
+Population parameter: M=The true GPA for students at Denison
+
+Null Hypothesis: M=3.15
+Alternative Hypothesis: M>3.15
+
+Alpha/significance level: .05
+
+Test statistic->t-score=((sample mean or x bar)-3.15)/((S=sample standard deviation GPA)/(square root of n or sample size))
+
+Assumptions: 
+
+n=36=the number of students in our sample that reported their GPA
+36>30
+The central limit theorem is met, meaning we can perform our t-test. Now we will perform our t-test in the subsequent code cell.
+```{r GPA t-test}
+t.test(acad_Denison$GPA,alternative='greater',mu=3.15,level=0.95)
+```
+
+Since our p-value (.0047) is less than our alpha-level (.05), we can reject our null hypothesis that the average GPA at Denison is equal to the known US average of 3.15. We have convincing evidence that the average GPA at Denison is greater than the known US average of 3.15. These are about the results that we expected and supports that students at Denison show above average levels of academic success long-term. 
+
+# Did students at Denison do the bare minimum to study before their last exam?
+
+We saw in our data exploration phases that with notably great variability, students in our sample only studied about 4 hours for their last exam on average (was based on our boxplot of study hours) and students in our sample only started studying two days prior to their last exam on average (was based on our boxplot of study days). Furthermore, we saw that more than 50% students in our sample either didn't study at all for their last exam or utilized only one study technique (was based on our pie chart of the different study methods). So maybe a good question to ask is: did students at Denison do the bare minimum to study before their last exam? We will set the bare minimum study time as the combined number of hours three minimum length (50 minutes) class periods are at Denison which is about 2.5 hours or 150 minutes since it seems common for science/math classes at Denison to be at least 50 minutes 3 times a week. So, given our sample data on study hours, we will construct a 99% confidence interval for M=mean number of hours students at Denison studied prior to their last exam and determine if 2.5 hours is in our interval to answer the question posed. But first, we will make sure the assumptions are met for our 99% confidence interval. 
+
+Assumption: 
+n=47>30
+The central Limit Theorem met since our sample size is greater than 30, so we can now contruct our 95% confidence interval. 
+
+99% confidence interval for M with population standard deviation not known=
+((sample mean or x bar)-(t-score for 99% confidence)*((S or sample standard deviation study hours)/(square root of n or our sample size)),(sample mean or x bar)+(t-score for 99% confidence)*((S or sample standard deviation study hours)/(square root of n or our sample size)))
+
+Now we will code in the next cell to compute specific values for our confidence interval-
+
+```{r study hour confidence interval}
+samplemean=mean(acad_Denison$study_hours)
+#df=46 since our sample size is 47 and we want t-critical value for 99% confidence interval
+inttscore=2.68
+standarderror=sd(acad_Denison$study_hours)/(sqrt(47))
+lower_confint_bound=samplemean-inttscore*standarderror
+upper_confint_bound=samplemean+inttscore*standarderror
+print('Lower bound for 99% confidence interval:')
+lower_confint_bound
+print('Upper bound for 99% confidence interval:')
+upper_confint_bound
+```
+
+As seen above with the lower and upper bounds for our 99% confidence interval computed, our 99% confidence interval for the mean number of hours students at Denison studied for their last exam came out to be (2.369,6.376). So, we can be 99% confident that the interval between 2.369 and 6.376 captures the true mean number of hours students at Denison studied for their last exam. Interestingly, since 2.5 is in our interval, we have convincing evidence that students at Denison did the bare minimum to study for their last exam a.k.a basically only studied when they were in class during the days leading up to the exam. However, let's also consider that we made a pretty rough estimate on what it meant for Denison students to do the "bare minimum" and that 2.5 hours is pretty close to the lower bound of our confidence interval of 2.369 hours. Furthermore, considering we sent out our sample to Denison students in early to mid November and had all our data collected by late November, these last exams that Denison students took in our sample weren't final exams. So, to further try to verify these results, we will also do a one-sample t-test that answers the same question about if Denison students did the bare minimum to study for their last exam at a=.01.
+
+# One-sample t-test to see further if there is convincing evidence that Denison students did the bare minimum (2.5 hours) to study for their last exam
+
+Before we carry out our actual hypothesis test, we will state our population parameter, hypotheses, test statistic, and assumptions. So...
+
+Population parameter: M=the true mean number of hours students at Denison studied prior to their last exam
+
+Null hypothesis: M=2.5 hours
+Alternative hypothesis: M>2.5 hours
+
+Significance/alpha-level: .01
+
+Test statistic->t-score=((sample mean or x bar)-2.5)/((S=sample standard deviation study hours)/(square root of n or sample size))
+
+Assumptions:
+n=47
+47>30
+Since the central limit theorem is met, we can now conduct our one-sample t-test in the subsequent code cell.
+
+```{r study hour t-test}
+t.test(acad_Denison$study_hours,alternative='greater',mu=2.5,level=0.99)
+```
+
+Since our p-value (.oo8) is less than our alpha-level (.01), we can reject our null hypothesis that the average number of hours students at Denison studied prior to their last exam is 2.5. We have convincing evidence that the average number of hours students at Denison studied prior to their last exam is greater than 2.5. 
+
+Now, thankfully, these were results we more so expected to see for our sample of students at Denison with regards to studying. This hypothesis test gives us convincing evidence that students at Denison did more than the bare minimum (2.5 hours) to study for their last exam unlike what the previous 99% confidence interval told us. Yet, it still doesn't seem like, based on our sample, Denison students did a lot of studying for their last exams. 
+
+# Looking at exam performance for STEM majors at Denison
+
+Now we will conduct a one-sample proportion z-test at the a=.05 significance level. We will determine if the majority of the STEM majors at Denison (science,technology,engineering,math) scored at least an 85% on their last exam. This will jumpstart us on answering our question on what the hardest types of majors are at Denison. 
+
+Before we carry out our actual hypothesis test, we will state our population parameter, hypotheses, test statistic, and assumptions. So...
+
+Population parameter: P=the true proportion of STEM majors at Denison that had at least an 85% on their last exam
+
+Null hypothesis: M=0.5
+Alternative hypothesis: M>0.5
+
+Alpha/significance level: .05
+
+Test statistic: z-score=(p hat)-0.5/(the square root of (0.5)(1-0.5)/(n or sample size))
+
+Assumptions:
+
+For our first assumption, we need to determine if the number of STEM majors in our sample is greater than 30 and determine the exact amount (n). In the code cell below, we go through each major in the major column of our Denison academic data is in the list of what we classify to be "stem majors" or "stem double majors" and have those STEM majors in a new table called STEM. Then, we count the number of rows of the new STEM table to find n or the number of STEM majors in our sample.
+```{r major assumption}
+print('n=the number of students in our sample that are stem majors:')
+STEM<-filter(acad_Denison,major %in% c('Biology','Economics','Applied Math','Financial Economics','Data Analytics','HESS and Communications','HESS','Psychology','Biochemistry','Earth and Environmental Science','Educational Studies and Math'))
+
+nrow(STEM)
+```
+
+The number of STEM majors in our sample is 35. So, our first assumption of central limit theorem (n>30) is met.
+
+Next assumptions:
+n*p>=10 where p=hypothesized value
+n*(1-p)>=10
+(35)(.5)=17.5>=10
+(35)(.5)=17.5>=10
+Our second assumptions are met, so we can now perform our one-proportion z-test for the true proportion of STEM majors at Denison that had at least 85% on their last exam. We will perform it now manually.
+
+Now we compute p-hat (the number of students in STEM for our sample that had an exam grade greater or equal to 85) and then we compute the test statistic for our one proportion z-test
+
+```{r stem z-test}
+#Determine the number of students in STEM that had an exam grade greater or equal to 85
+x=nrow(STEM[STEM$exam_grade >=85, ])
+p_hat=x/35
+print('Test statistic:')
+#Compute test statistic
+tstat=(p_hat-0.5)/(sqrt((0.5)*(1-0.5)/(35)))
+tstat
+print('P-value:')
+#Compute p-value 
+pnorm(q=-3.212, mean=0, sd=1)
+```
+
+Since our p-value (.0007) is less than our alpha level .05, we can reject the null hypothesis that 50% of the stem majors at Denison scored at least an 85% on their last exam. We have convincing evidence that more than 50% of stem majors at Denison scored at least at an 85% on their last exam. This makes sense considering the average last exam grade for our sample of Denison students at least was about 86% and with the majority of the students in our sample (35/47) being a STEM major. Now we will construct a 95% confidence interval for p equal to the true proportion of STEM majors in our academic data that had a score of at least 85% on their last exam. 
+
+# 95% confidence interval for p=the true proportion of STEM majors in our academic data that had a score at least 85% on their last exam
+
+Before we construct this confidence interval, we will check for the needed assumptions...
+
+Assumptions:
+n=35
+35>30 so the central limit theorem is met
+
+35(0.5)=17.5>=10
+35(0.5)=17.5>=10
+
+Both of our required assumptions are met, so we will now construct our necessary confidence interval for p 
+
+95% confidence interval for P=
+((sample proportion or p hat)-(z-score for 95% confidence)*((square root of S or sample standard equal to (p hat)(1 - p hat)/(n))),(sample proportion or p hat)+(z-score for 95% confidence)((square root of S or sample standard deviation equal to (p hat)(1 - p hat)/(n))
+
+```{r STEM 95% confidence}
+sampleprop=nrow(STEM[STEM$exam_grade >=85, ])/35
+#z-score for 95% confidence interval
+intzscore=1.96
+standarderror=sqrt((sampleprop)*(1-sampleprop)/(35))
+lower_confint_bound=sampleprop-intzscore*standarderror
+upper_confint_bound=sampleprop+intzscore*standarderror
+print('Lower bound for 95% confidence interval:')
+lower_confint_bound
+print('Upper bound for 95% confidence interval:')
+upper_confint_bound
+
+```
+
+As seen above with the lower and upper bounds for our 95% confidence interval computed, our 95% confidence interval for the proportion of STEM majors at Denison that scored at least an 85% on their last exam was computed to be (0.632,0.911). So, we can be 95% confident that the interval between 0.632 and 0.911 captures the true proportion of STEM majors at Denison that scored at least an 85% on their last exam. Since 0.5 is not in our interval and all the values for our interval are greater than 0.5, we have convincing evidence that the majority of STEM majors at Denison that scored at least an 85% on their last exam. This confidence interval and the previous one proportion z-test shows that our sample provides convincing evidence that the majority of STEM majors at Denison scored at least an 85% on their last exam. We will compare these results to the results we have on the exam performance across the humanities/social science majors at Denison in the beginning of our next section called categorical data analysis.
+
+# Categorical Data Analysis
+
+In this section, we perform correlation analysis for our categorical variables with comparative boxplots and even facet-wrapped histograms to answer our questions:
+  
+  * How does academic performance differ across the different study methods?
+  
+  * What does academic performance (current GPA, last test scores) look like across each student class (Freshman,Sophomore,Junior,Senior)?
+  
+  * What are the hardest types of majors?
+
+# Looking at recent exam performance for all the non-STEM majors at Denison
+
+First of all, given that only 12 students in our Denison academic data out of 47 majored in something other than STEM, we won't be able to compute an confidence intervals or hypothesis tests since we can't meet the central limit theorem condition for these students (n>30). So, to do our best ti compare recent exam performance for non-STEM majors at Denison to recent exam performance for STEM majors, we will create boxplot for our sample that shows the distribution of performance on last exams for all the non-STEM majors in our data. 
+```{r boxplot for performance on last exams for all non-STEM majors,message=FALSE,warning=FALSE}
+nonSTEM<-filter(acad_Denison,!(major %in% c('Biology','Economics','Applied Math','Financial Economics','Data Analytics','HESS and Communications','HESS','Psychology','Biochemistry','Earth and Environmental Science','Educational Studies and Math')))
+ggplot(nonSTEM,aes(x=exam_grade))+
+  geom_boxplot(fill='orange',bins=30)+
+  labs(x="Last Exam grade",y='Number of students',title='Distribution of last exam grade',caption='This boxplot\n displays a summary of the distribution of last exam grade \nfor non-STEM majors in our sample.')+
+  scale_x_continuous(breaks=integer_breaks())+
+  scale_y_continuous(NULL,breaks=NULL)+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+  print('A couple of summary statistics for our non-STEM major data')
+  summary(nonSTEM$exam_grade)
+```
+
+We can see that, unlike the overall distribution of exam grade in our sample shown earlier in this report, the distribution of exam grade for the non-STEM majors in our data appears to be skewed right despite the mean looking similar to the median with no outliers. The center of the distribution of exam grade for the non-STEM majors in our data appears to be a median of about 84.5 with a mean of 85.46, which are both lower means and medians than what we saw for our overall distribution of last exam grade. This indicates that STEM majors in our data likely had a mean and median exam grade higher than the non-STEM majors in our data overall. We seem to have normal levels of variability in this boxplot of the distribution of last exam grade for non-STEM majors with an IQR of 7.25. Now we will create a boxplot for the STEM majors in our data to draw a more direct comparison.
+
+```{r boxplot for performance on last exams for all STEM majors,message=FALSE,warning=FALSE}
+STEM<-filter(acad_Denison,major %in% c('Biology','Economics','Applied Math','Financial Economics','Data Analytics','HESS and Communications','HESS','Psychology','Biochemistry','Earth and Environmental Science','Educational Studies and Math'))
+ggplot(STEM,aes(x=exam_grade))+
+  geom_boxplot(fill='pink',bins=30)+
+  labs(x="Last Exam grade",y='Number of students',title='Distribution of last exam grade',caption='This boxplot\n displays a summary of the distribution of last exam grade \nfor STEM majors in our sample.')+
+  scale_x_continuous(breaks=integer_breaks())+
+  scale_y_continuous(NULL,breaks=NULL)+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+  print('A couple of summary statistics for our STEM major data')
+  summary(STEM$exam_grade)
+```
+
+For the distribution of last exam scores for the STEM majors in our data, we can see the distribution is roughly symmetric with 4 outliers at about 32,51,67, and 68. The distribution is shown to be centered at a mean of 86.56 with a median 90 (both very similar to our overall dsitribution of exam score) which are both confirmed to be higher than the centers of the non-STEM distribution above. We appear to have normal levels of variability in this boxplot of last exam score for the STEM majors in our, similar to the variability of the previous boxplot of exam score by non-STEM majors with an IQR of about 10. 
+
+Based on this boxplot that has higher centers than the non-STEM boxplot and that we found convincing evidence that the majority of STEM majors at Denison scored at least an 85% on their last exam (note that 85% is about the mean exam score for non-STEM majors in our data), we can say that, based on our sample, STEM majors potentially demonstrate higher levels of academic performance than non-STEM majors do. 
+
+# Comparative boxplots for exam grade and GPA across the different study methods in our data
+
+Now we want to see if less passive study methods see higher levels of short-term and long-term academic performance, so we constructed comparative boxplots with notches (to see if the medians overlap or if there is a significant difference between medians based on the confidence intervals).
+```{r comparative boxplots,message=FALSE,warning=FALSE}
+ggplot(acad_Denison,aes(x=study_method,y=exam_grade,fill=study_method))+
+  geom_boxplot(notch=TRUE)+
+  labs(x='Study Method',y='Exam Grade',title='Distribution of Exam Score\n for the different study methods',caption='These boxplots show the distribution of exam scores\n for the different study methods.',fill='Study Method')+
+  theme_few()+
+  theme(axis.text.x = element_text(angle=75, vjust=.6))+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Based on the boxplots above, we can see that performance on last exam doesn't really differ much between the students in our data that didn't study at all before their last exam (denoted by the code DS or the red boxplot showing the distribution of exam score for students that didn't study) compared to students in our that utilized at least one study method before their last exam (denoted by all other codes and boxplots). The confidence intervals for the median exam score across all our boxplots by study method generally overlapped, supporting that median or typical performance on last exams didn't differ much across the different study methods in our data. Yet, we do see our outlier for exam score below 30 for our distribution of exam scores for the students that didn't study prior to their last exam. These are not the results we quite expected to see. However, we should note that the wideness of the different median confidence intervals is explained by the pretty low sample sizes we have across each of the study methods in our sample.
+
+```{r GPA boxplots,message=FALSE,warning=FALSE}
+ggplot(acad_Denison,aes(x=study_method,y=GPA,fill=study_method))+
+  geom_boxplot(notch=TRUE)+
+  labs(x='Study Method',y='GPA',title='Distribution of GPA\n for the different study methods',caption='These boxplots summarize the distribution of GPA\n for the different study methods.',fill='Study Method')+ 
+  theme_few()+
+  theme(axis.text.x = element_text(angle=75, vjust=.6))+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Based on the boxplots above, we can see that long-term academic performance (GPA) differs between the students in our data that didn't study at all before their last exam (denoted by the code DS or the red boxplot showing the distribution of exam score for students that didn't study) compared to students in our that utilized at least one study method before their last exam (denoted by all other codes and boxplots). The confidence intervals for the median GPA across all our boxplots by study method did not overlap as much, supporting that median or typical long-term academic performance (GPA) differed across the different study methods in our data. In addition, we see an outlier in GPA of 1.5 for students in our sample that did not study prior to their last exam and an outlier in GPA of 2.5 for students in our sample that only re-read their notes (RN) prior to their last. RN and DS are both considered more-passive/worse study methods in our data. So, the fact that there are lower outliers (only outliers too) in GPA at both of those boxplots further supports the results we see in the boxplots above of a difference in GPA across more-passive/less-passive study methods. These are more so the results we expected to see. However, we should note that the wideness of the different median confidence intervals is explained by the pretty low sample sizes we have across each of the study methods in our sample.
+
+# Distribution for exam grade and GPA across the different student classes in our data
+Now, we create facet-wrapped histograms and comparative boxplots to compare the distribution of short-term (exam grade)/long-term academic performance (GPA) across the different student classes for our data.
+```{r class boxplots,message=FALSE}
+ggplot(acad_Denison,aes(x=class,y=exam_grade,fill=class))+
+  geom_boxplot(notch=TRUE)+
+  labs(x='Student Class',y='Exam Grade',title='Distribution of Exam Grade \n for the different student classes',caption='These boxplots summarize the distribution of exam grade\n for the different student classes.',fill='Student Class')+ 
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+As shown by the comparative boxplots above, once again, similar to what we saw for exam grade across the different study methods, we don't see a significant difference in last exam grade across the different student classes in our data. The lack of a relationship between student class and last exam grade is supported by the confidence intervals for median or typical exam grade across all the boxplots for the student classes overlapping.
+```{r class GPA boxplots,message=FALSE,warning=FALSE}
+ggplot(acad_Denison,aes(x=GPA,fill=class))+
+  geom_histogram()+
+  facet_wrap(~class)+
+  labs(x='Student Class',y='GPA',title='Distribution of GPA \n for the different student classes',caption='These histograms show the distribution of GPA\n for the different student classes.',fill='Student Class')+ 
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Looking at these histograms that show the distribution of GPA for the different student classes we had in our, we can see that sophomores and juniors in our data generally demonstrated higher levels of GPA compared seniors or freshman in our data. Yet, it should be noted based on these histograms that juniors and sophomores reported their GPA more than freshman or seniors did for our data. This is to due to that, thinking back to the pie chart we created on the different student classes for our data, the students in our data primarily seemed to consist of juniors and sophomores. So, with more juniors/sophomores in our data, sophomores/juniors were able to report their GPA in our survey more times than freshman or seniors.
+
+# Numerical Data Analysis
+
+In this section, we perform correlation analysis for our numerical variables with scatterplots/linear regression models to answer our questions:
+
+* What is the relationship between sleep/study habits and academic performance?
+* How does long-term academic performance (GPA) relate to short-term academic performance (last exam scores)?
+* What is the relationship between sleep hours and study hours?
+
+# The relationship between study habits and last exam performance
+
+Here, we create two different scatterplots along with a plotted regression line to illustrate the relationship between our study habits variables (study hours,study days) and last exam grade for sample.
+```{r study hours vs test scores,message=FALSE,warning=FALSE}
+ggplot(acad_Denison,aes(x=study_hours,y=exam_grade))+
+  geom_jitter(alpha=4/10)+
+  geom_smooth(method='lm',color='red')+
+  labs(x='Hours spending studying\n before last exam',y='Exam Grade',title='Study Hours vs Exam Grade',caption='This scatterplot shows the correlation\n between study hours and exam grades.')+
+  stat_cor(method = "pearson")+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Based on this scatterplot, we can see that there is no association between study hours and exam grades with the red plotted regression line having a nearly flat slope. For our sample, with a correlation coefficient of 0.12, as the number of hours a student studied before his/her last exam increased, there was little to no increase in last exam grade. This was not the result that we expected considering that spending more time studying should lead to a much better exam score for the most part. Yet, we also see two influential observation at 20 study hours and 28 study hours that likely significantly lowered our correlation as both of the students in our sample that studied that long saw last exam scores similar to the overall mean exam score in our data of 86%. Furthermore, we see that there was a p-value of 0.41 for our correlation coefficient. This means that, assuming there is no correlation between study hours and last exam grade, the probability of seeing a correlation coefficient at least as contradictory to the null hypothesis of 0.12 is 41%. That is a high probability for this low correlation between study hours and last exam grade. Thus, to a good extent, we could say we are inconclusive about the correlation between study hours and exam grade which is not the result we would've expected to come to. 
+```{r study days vs test scores,message=FALSE,warning=FALSE}
+ggplot(acad_Denison,aes(x=study_days,y=exam_grade))+
+  geom_jitter(alpha=4/10)+
+  geom_smooth(method='lm',color='green')+
+  labs(x='Number of days student started\n studying before last exam',y='Exam Grade',title='Study Days vs Exam Grade',caption='This scatterplot shows the relationship\n between study days and exam grades.')+
+  stat_cor(method = "pearson")+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Based on this scatterplot, we can see that there is no association between study days and last exam grades with the green plotted regression line having a nearly flat slope. For our sample, with a correlation coefficient of 0.14, as the number of days a student started studying before his/her last exam increased, there was little to no increase in last exam grade. This was not the result that we expected considering that studying further in advance before an exam should lead to a much better exam score for the most part. Yet, we also see two influential outliers at 7 days, 7 days, 8 days, and 10 days that likely significantly lowered our correlation as the students in our sample that studied that long saw last exam scores similar to the overall mean exam score in our data of 86% despite better studying. Furthermore, we see that there was a p-value of only 0.34 for our correlation coefficient. This means that, assuming there is no correlation between study days and last exam grade, the probability of seeing a correlation coefficient at least as contradictory to the null hypothesis as 0.14 is 34%. That is a high probability for this low correlation between study days and last exam grade. Thus, we could say we are inconclusive about the correlation between study days and exam grade which is once again not the result we would've expected to come to. 
+
+# The relationship between sleep habits and last exam performance
+
+Here, we create a scatterplot along with a plotted regression line to illustrate the relationship between our sleep habit variables (sleep hours) and last exam grade for sample.
+```{r sleep hours vs test scores,message=FALSE,warning=FALSE}
+ggplot(acad_Denison,aes(x=sleep_hours,y=exam_grade))+
+  geom_jitter(alpha=4/10)+
+  geom_smooth(method='lm')+
+  labs(x='Hours of sleep before last exam',y='Exam Grade',title='Sleep Hours vs Exam Grade',caption='This scatterplot shows the correlation\n between sleep hours and exam grades.')+
+  stat_cor(method = "pearson")+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Based on this scatterplot and a correlation coefficient of -0.36, there seems to a negative, weak-moderate, linear relationship between sleep hours and grades on last exam for students in our sample. As sleep hours increase, we see a slight decline in expected last exam grade. This correlation coefficient has a p-value .012, which is less than many commonly used significance levels (a=.1,.05), supporting the correlation between sleep hours and last exam grade to be statistically significant assuming there is no correlation. However, we would've expected to see a positive correlation in the other direction considering that it may be better to feel more well-rested before an exam rather than sacrifice sleep and do more studying. Yet, you don't want to get too much sleep before an exam either because that would mean less studying, explaining our negative correlation a little. Furthermore, we had one influential observation in our data at 15 hours of sleep with an exam grade under 40% that made the correlation between sleep hours/last exam grade significantly more negative. 
+
+# Regression model to more deeply examine the relationship between sleep hours and exam grade
+
+Here, considering that sleep hours correlated more strongly with short-term academic performance (last exam grade) than our study habit variables, we create a linear regression model to look deeper into the relationship between sleep hours and last exam grade for our sample.
+```{r regression between sleep hours and exam grade}
+sleepvsexamgrade_model<-linear_reg()%>%
+  set_engine('lm')%>%
+  fit(exam_grade~sleep_hours,data=acad_Denison)
+summary(sleepvsexamgrade_model$fit)
+```
+
+Based on the output of our first regression model above that creates a "line of best-fit" that tries to minimize  the distance of the residuals (actual exam grade-predicted exam grade in this case), it appears that the residuals from the line are roughly normally distributed. The residuals at Q1 and Q3 are roughly equidistant from the median residual although the minimum and maximum residuals are slightly disproportionate distances from the median residual. The overall equation for our regression line between sleep hours and exam score was calculated to be yhat/predicted y/predicted last exam score=107.758-2.948x. Based on the y-intercent, when a student gets 0 hours of sleep the night before an exam, his/her predicted exam score is 107.758 (doesn't really make sense). Based on the slope, for every 1 point increase in hours a sleep a student gets the night before an exam, his/her predicted exam score is expected to decrease by 2.948%. Based on the R2/coefficient of determination of 0.1318, 13.18% of the variability in last exam score is explained by the relationship between sleep hours and last exam score. Based off an alpha level of .05, the slope of the regression line, the y-intercept of the regression line, and the R2 value for this linear regression test were all computed to be statistically significant (p-values<.05).
+
+# Validating our linear regression model between sleep hours and last exam grade
+```{r residuals QQ plot}
+last_exam_res <- rstandard(sleepvsexamgrade_model$fit)
+ggplot(,aes(sample=last_exam_res)) +
+  geom_qq() +
+  geom_qq_line() +
+  labs(y="Standardized Residuals\n (Actual last exam score-predicted last exam score)", x="Normal Scores",title='Last exam grade and sleep hours model residuals vs\n a normal distribution of residuals (the line)',caption='This QQ plot shows the distribution of residuals\n in the last exam grade and sleep hours model compared to a normal distribution.')+
+  theme_few()+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+We appear to have a decent first linear regression model here as the residuals of our regression line between sleep hours and last exam grade follow a normal distribution for the most part, meaning the regression line fits to the points as it should.
+
+# Examining the relationship between study habits and long term academic performance (GPA)
+
+Here, we create two different scatterplots and compute correlation coefficients with p-values to perform correlation analysis on the relationship between study habits and GPA.
+```{r study hours vs GPA,message=FALSE,warning=FALSE}
+ggplot(acad_Denison,aes(x=study_hours,y=GPA))+
+  geom_jitter(alpha=4/10)+
+  geom_smooth(method='lm',color='red')+
+  labs(x='Hours spending studying\n before last exam',y='GPA',title='Study Hours vs GPA',caption='This scatterplot shows the correlation\n between study hours and GPA.')+
+  stat_cor(method = "pearson")+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Based on this scatterplot and correlation coefficient of 0.33, we can see that there is a positive, weak to moderate, linear relationship between study hours and GPA with the red plotted regression line having a slightly upward angling slope. As study hours increase, GPA slightly rises.  This was closer to the result that we expected considering that spending more time studying prior to an exam short-term could help explain long-term academic performance since more successful students tend to develop certain studying routines. We even see an influential observation at 28 study hours for a student that had a GPA close to the average of our sample of about 3.4, which likely lowered our correlation too. Furthermore, with a p-value of 0.049, our correlation is proven to be statistically significant based off of an alpha level of .05. Thus, we found, to a minor extent, that as study hours increase, long-term academic performance (GPA) rises.
+```{r study days vs GPA,message=FALSE,warning=FALSE}
+ggplot(acad_Denison,aes(x=study_days,y=GPA))+
+  geom_jitter(alpha=4/10)+
+  geom_smooth(method='lm',color='green')+
+  labs(x='Number of days student started\n studying before last exam',y='GPA',title='Study Days vs GPA',caption='This scatterplot shows the relationship\n between study days and GPA.')+
+  stat_cor(method = "pearson")+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Based on this scatterplot and correlation coefficient of 0.38, we can see that there is a positive, weak to moderate, linear relationship between study days and GPA with the green plotted regression line having a slightly upward angling slope. As study days increase, GPA slightly rises.  This was closer to the result that we expected considering that starting to study more days prior to an exam short-term could help explain long-term academic performance since more successful students tend to develop certain studying routines. We even see an influentials observation at 7 days, 7 days, 8 days, and 10 days for students that had a GPA close to the average of our sample between 3.4 and 3.8, which likely lowered our correlation too. Furthermore, with a p-value of 0.022, our correlation is proven to be statistically significant based off of an alpha level of .05. Thus, we found, to a minor extent, that as study days increase, long-term academic performance (GPA) rises.
+
+# The relationship between sleep habits and GPA
+
+Here, we create a scatterplot along with a plotted regression line to illustrate the relationship between our sleep habit variables (sleep hours) and GPA for our sample.
+```{r sleep hours vs GPA,message=FALSE,warning=FALSE}
+ggplot(acad_Denison,aes(x=sleep_hours,y=GPA))+
+  geom_jitter(alpha=4/10)+
+  geom_smooth(method='lm')+
+  labs(x='Hours of sleep before last exam',y='Student GPA',title='Sleep Hours vs GPA',caption='This scatterplot shows the relationship\n between sleep hours and GPA.')+
+  stat_cor(method = "pearson")+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Based on this scatterplot and a correlation coefficient of -0.41, there seems to a negative, slightly weak-moderate, linear relationship between sleep hours and GPA for students in our sample. As sleep hours increase, we see a decline in expected GPA. This correlation coefficient has a p-value .00069, which is less than many commonly used significance levels (a=.1,.05,.01), supporting the correlation between sleep hours and GPA to be statistically significant assuming there is no correlation. However, we would've expected to see a positive correlation in the other direction considering that better sleep habits short-term may help to explain long-term academic performance (GPA) long-term. Yet, you don't want to get too much sleep before an exam either because that would mean less studying, explaining our negative correlation a little. Furthermore, we had one influential observation in our data at 15 hours of sleep with an exam grade under 40% that made the correlation between sleep hours/GPA significantly more negative. 
+
+# Investigating the relationship between sleep hours and GPA more with a linear regression model
+
+Given that sleep hours for our Denison academic data had a stronger relationship with GPA than our study habit variables, we create a linear regression model to further examine that relationship between sleep hours and GPA.
+```{r regression between sleep hours and GPA,message=FALSE,warning=FALSE}
+sleepvsGPA_model<-linear_reg()%>%
+  set_engine('lm')%>%
+  fit(GPA~sleep_hours,data=acad_Denison)
+summary(sleepvsGPA_model$fit)
+```
+
+Based on the output of our second regression model above that creates a "line of best-fit" that tries to minimize  the distance of the residuals (actual GPA-predicted GPA in this case), it appears that the residuals from the line may be normally distributed (Q1 and Q3 roughly equidistant from median residual). The overall equation for our regression line between sleep hours and GPA was calculated to be yhat/predicted y/predicted GPA=4.3293-0.1305x. Based on the y-intercent, when a student gets 0 hours of sleep the night before an exam, his/her predicted GPA is 4.3293 (doesn't really make sense). Based on the slope, for every 1 point increase in hours a sleep a student gets the night before an exam, his/her predicted GPA is expected to decrease by 0.1305. Based on the R2/coefficient of determination of 0.1956, 19.56% of the variability in GPA is explained by the relationship between sleep hours and GPA. Based off an alpha level of .05, the slope of the regression line, the y-intercept of the regression line, and the R2 value for this linear regression test were all computed to be statistically significant (p-values<.05).
+
+# Validating our linear regression model between sleep hours and GPA
+```{r residuals 2 QQ plot}
+gpa_res <- rstandard(sleepvsGPA_model$fit)
+ggplot(,aes(sample=gpa_res)) +
+  geom_qq() +
+  geom_qq_line() +
+  labs(y="Standardized Residuals\n (Actual GPA-predicted last GPA)", x="Normal Scores",title='GPA and sleep hours model residuals vs\n a normal distribution of residuals (the line)',caption='This QQ plot shows the distribution of residuals\n in the GPA and sleep hours model compared to a normal distribution.')+
+  theme_few()+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+We appear to have a decent second linear regression model here as the residuals of our regression line between sleep hours and GPA follow a normal distribution for the most part, meaning the line fits to the points as it should.
+
+# Determining the relationship between sleep hours and study hours
+
+Here, we create a scatterplot and compute the necessary correlation coefficient to determine how strongly more hours of sleep might lead to less studying for an upcoming exam. 
+
+```{r sleep hours vs study hours,message=FALSE,warning=FALSE}
+ggplot(acad_Denison,aes(x=sleep_hours,y=study_hours))+
+  geom_jitter(alpha=4/10)+
+  geom_smooth(method='lm',color='orange')+
+  labs(x='Number of hours of sleep a student got\n before last exam',y='Hours spent studying\n on last exam',title='Sleep hours vs study hours',caption='This scatterplot shows the relationship\n between sleep hours and study hours.')+
+  stat_cor(method = "pearson")+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Based on this scatterplot and the correlation coefficient of -0.24, it seems that there is a weak, linear relationship between sleep hours and study hours. As sleep hours increase, we see little increase in study hours. This correlation was also likely influenced by the influential observation in our data 15 sleep hours that had about 0 hours of studying. In addition, our correlation isn't fully statistically significant with a p-value of .088 greater than an alpha level .05. Yet, this correlation also kind of makes sense because there are other things in college that affect sleep outside of school work such as athletics or social life. 
+
+# How well long-term academic performance helps to explain short-term academic performance
+
+As our last correlation, we look in how our variable GPA about long-term academic performance is related to short-term academic performance.
+
+```{r GPA vs test scores,message=FALSE,warning=FALSE}
+ggplot(acad_Denison,aes(x=GPA,y=exam_grade))+
+  geom_jitter(alpha=4/10)+
+  geom_smooth(method='lm',color='purple')+
+  labs(x='Cumulative GPA',y='Exam Grade',title='Cumulative GPA vs Exam Grade',caption='This scatterplot shows the correlation\n between GPA and exam grades.')+
+  stat_cor(method = "pearson")+
+  theme_few()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Based on a scatterplot and a correlation coefficient of 0.58, there is a moderate, linear relationship between GPA and last exam grades in our sample. As GPA increases, to a moderate extent, last exam grades increase. This isn't really too surprising since more successful students academically in the long-term seem to be more likely to execute on exams in the short-term. This correlation was also found to be statistically significant with a p-value of 2e-04 (.00..2). Yet, there was also an influential observation at a GPA of 1.5 that affected our correlation a little bit. Nevertheless, we found the students in our data with more long-term academic success (GPA) demonstrated higher last exam scores to a moderate extent.
+
+# Investigating the relationship between GPA and exam grade more with a linear regression model
+
+Given that GPA and exam grade produced the strongest correlation out of all the scatterplots/correlation coefficients we created, we create a linear regression model to further examine that relationship between GPA and last exam grade.
+```{r regression between GPA and exam grade}
+GPAvexam_model<-linear_reg()%>%
+  set_engine('lm')%>%
+  fit(exam_grade~GPA,data=acad_Denison)
+summary(GPAvexam_model$fit)
+```
+
+Based on the output of our second regression model above that creates a "line of best-fit" that tries to minimize  the distance of the residuals (actual last exam score-predicted last exam score in this case), it appears that the residuals from the line may be normally distributed (Q1 and Q3 roughly equidistant from median residual). The overall equation for our regression line between GPA and exam score was calculated to be yhat/predicted y/predicted last exam score=33.919+15.568x. Based on the y-intercent, when a student has GPA of 0, his/her predicted last exam score is 33.919%. Based on the slope, for every 1 point increase in a student's GPA, his/her predicted last exam grade is expected to increase by 15.568. Based on the R2/coefficient of determination of 0.3384, 33.84% of the variability in last exam grade is explained by the relationship between GPA and last exam grade. Based off an alpha level of .05, the slope of the regression line, the y-intercept of the regression line, and the R2 value for this linear regression test were all computed to be statistically significant (p-values<.05).
+
+# Validating our linear regression model between GPA and last exam scores
+```{r validating acad perf model}
+exam_res <- rstandard(GPAvexam_model$fit)
+ggplot(,aes(sample=exam_res)) +
+  geom_qq() +
+  geom_qq_line() +
+  labs(y="Standardized Residuals\n (Actual last exam score-predicted last exam score)", x="Normal Scores",title='Exam score and GPA model residuals vs\n a normal distribution of residuals (the line)',caption='This QQ plot shows the distribution of residuals\n in the exam score and GPA model compared to a normal distribution.')+
+  theme_few()+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+We appear to have a decent final linear regression model here as the residuals of our regression line between GPA and exam score follow a normal distribution for the most part, meaning the line fits to the points as it should.
+
+# Conclusion
+To conclude about our main findings for this project to explain how we answered the questions:
+  
+  
+  * What are the hardest types of majors (STEM vs. non-STEM)?
+  * What does academic performance (current GPA, last exam scores) look like across each student class (Freshman,Sophomore,Junior,Senior)?
+  - What does academic performance look like with more passive study methods vs. less passive study methods?
+  * What is the relationship between sleep/study habits and academic performance?
+  * What is the relationship between sleep hours and study hours
+  - What about the relationship between long-term (GPA) and short-term (last exam grade) academic performance?
+
+We have the following answers to our main questions:
+
+* Based on our sample, we found that non-STEM majors demonstrated lower levels of short-term academic performance compared to STEM majors. This was based on when compared two boxplots separately with one being for last exam grade data for STEM majors and the another one being for last exam grade data for non-STEM majors (STEM majors had higher mean/median last exam grade). **In addition**, this was based on the one-proportion z-test and 95% confidence interval for p=the true proportion of STEM majors at Denison scored at least an 85% on their last exam where both found convincing evidence that the majority of STEM majors at Denison scored at least an 85% on their exam. 
+  * We didn't fully expect STEM majors to see higher short-term academic performance (exam score) or be proved to be harder than non-STEM majors due to the fact that STEM majors consist of hard classes such as Physics, Biology, Chemistry, Multivariable Calculus, etc. that we thought would influence STEM major exam scores to be lower.
+* We found that short-term academic performance (last exam grade) did not differ significantly across less-passive vs. more-passive study methods, while long-term academic performance (GPA) did appear to differ significantly between study methods with less-passive study methods showing higher GPA. This was based on the comparative boxplots we created that showed the distribution of academic performance across the different study methods.
+We saw a similar trend with academic performance across the different student classes with juniors and sophomores having higher levels of GPA based on our histograms that were divided out based on class.
+    * We were a little bit surprised by these results as well because, for our sample, we would've expected that students that used less-passive study methods or various study methods would perform significantly better in the short term (exams) than students who didn't study at all.
+* For short-term academic performance (last exam grade), we didn't see much of a relationship between study days/study hours and academic performance, but the relationships weren't supported to be statistically significant (p-value for both correlation coefficients greater than 0.3). Yet, to a minor extent, for our sample, we saw that students that got more sleep prior to their last exam saw higher levels of short-term academic performance.
+    * We were surprised by the results too, yet they are related to outliers in our sample influencing the data more than we would have liked in addition to students in our data just having easy last exams. For example, the two study hour influential observations at 20 and 28 at our first scatterplot likely made the correlation go down between study hours and exam grade significantly. In addition, supporting that students in our sample had easy last exams, our histogram of exam grade revealed high levels of exam performance for Denison students in the sample we collected, yet pretty low levels of studying for Denison students in our sample when we looked at any study variables (especially study method/study hours). Additionally we had one student that slept 15 hours and got about 28% on his/her last exam. That affected our correlation between sleep and exam grades that we expected to be more positive since feeling well-rested is important for an exam.
+* For long-term academic performance (GPA), we saw a weak to moderate relationship between study days/study hours and academic performance. As study days/study hours went up, GPA would be expect to increase too. Yet, to a slightly weak to moderate extent, for our sample, we saw that students that got more sleep prior to their last exam saw higher levels of long-term academic performance.
+  * We still would've expected a slightly higher correlation between study days/hours and GPA, but closer to what we expected this time where students with higher GPA study more. In addition, once again the student that slept 15 hours significantly affected our sleep correlation that we expected to be more positive.
+* Our sample size (47) likely just wasn't good enough to represent over 2000 students at Denison. If we had a larger sample size, we would have found more useful results and saw more so what we expected rather than having some outliers influence our data.
+* We didn't see much of relationship between sleep hours and study hours, but it wasn't considered to be statistically significant either (p-value>0.05). This wasn't surprising considering we have other things going on at night other than studying at college such as athletics or a social life that would impact sleep too.
+* To a moderate extent, students in our sample that demonstrated higher levels of long-term academic performance (GPA) had higher levels of short-term academic performance (last exam scores). This result is not surprising. It makes sense that students with higher GPAs generally have higher last exam scores.
+
+# Interpretations and Discussions for Further Research Problems
+The results of this project could be applied to students at other universities like Denison. Future research that could be done after this after this project could include how sleep/study hours relate to number of hours per week different students at Denison do work-study jobs. We could try to survey college students on an app or website that several different college students access to obtain a larger sample. More future research could done more on the study habits of the different college student classes.
+
+
+

@@ -1,0 +1,7 @@
+"0","#Required packages:"
+"0","#dplyr"
+"0","library(dplyr) #data wrangling and manipulation"
+"0","#Select a subset of the 2023 NSDUH data that has the 25 necessary columns"
+"0","#and only includes multiracial young adults aged 18-25"
+"0","data<-subset(data, CATAGE==2 & NEWRACE2==6, select = c(ANALWT2_C,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY))"
+"0","data"
