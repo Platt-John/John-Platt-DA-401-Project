@@ -71,8 +71,6 @@ We distill the 2023 NSDUH data down to the necessary variables (25):
 3. Covariates
 4. Survey Design variables (ANALWT2_C,VESTR_C,VEREP)
 5. Filter variables (CATAGE,NEWRACE2)
-
-Then, we filter the data down to multiracial young adults aged 18-25 (CATAGE==2 & NEWRACE2==6). We do this with one function (subset(data, subset, select...) of base R). 
 ```{r 2023 NSDUH variable selection, message=FALSE, warning=FALSE, include=TRUE}
 #Required packages:
 #dplyr
