@@ -12,7 +12,7 @@ To answer my research question, I utilize the 2023 NSDUH (National Survey on Dru
 I create comparative barplots, boxplots, and other visualizations to perform initial exploration, and see initial associations. Then, I do 2 sample t-tests, chi-squared tests of indepedence, or ANOVA to further examine initial associations. Subsequently, I use logistic regression and RCS as well as threshold analysis to see the extent and strength of the associations. Finally, I use the Random Forest machine learning algorithm to develop a high-accuracy predictive model between illicit substance use and mental health issues (if time permits).
 
 ## Expected Timeline
-![alt text]()
+![alt text](https://github.com/Platt-John/John-Platt-DA-401-Project/blob/main/figures/Final%20Project%20Timeline.png)
 
 ## Google Drive 
 https://drive.google.com/drive/u/0/folders/1wrYRXpkUemxqu_DIjcFd96PC9m-JioWf
