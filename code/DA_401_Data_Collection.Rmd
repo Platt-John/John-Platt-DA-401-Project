@@ -78,8 +78,7 @@ Then, we filter the data down to multiracial young adults aged 18-25 (CATAGE==2 
 #dplyr
 library(dplyr) #data wrangling and manipulation
 #Select a subset of the 2023 NSDUH data that has the 25 necessary columns
-#and only includes multiracial young adults aged 18-25
-data<-subset(data, CATAGE==2 & NEWRACE2==6, select = c(ANALWT2_C,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY))
+data<-data %>% select(ANALWT2_C,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY)
 data
 ```
 
@@ -88,14 +87,6 @@ Subsequently, we adjust the values in the columns from codes to descriptive valu
 #Decoding of IRSEX column
 data$IRSEX<-factor(data$IRSEX, 
                     levels=c(1,2),labels=c('Male',"Female"))
-#Decoding of CATAGE column
-data$CATAGE<-factor(data$CATAGE, 
-                    levels=c(2),
-                    labels=c("18-25 Years Old"))
-#Decoding of NEWRACE2 column
-data$NEWRACE2<-factor(data$NEWRACE2, 
-                    levels=c(6),
-                    labels=c("NonHisp more than one race"))
 #Decoding of EDUHIGHCAT column
 data$EDUHIGHCAT<-factor(data$EDUHIGHCAT, 
                     levels=c(1,2,3,4,5),
