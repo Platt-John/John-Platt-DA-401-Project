@@ -41,14 +41,14 @@ Below is a table that describes the key variables that we include from this 2023
 # R version: 4.5.1
 library(knitr) #for table display
 #Create vector called variable that has different variables of the data
-variable=c('ANALWT2_C','VESTR_C','VEREP','IRSEX','CATAGE','NEWRACE2','EDUHIGHCAT','IRWRKSTAT18','IRHHSIZ2','IRPRVHLT','INCOME','IRALCFY','IRMJFY',"IRCOCFY",'IRCIGFM','IRNICVAP30N','IRHALLUCYFQ','IRALCBNG30D','SUTINPPY','IRDSTNRV12','IRDSTEFF12','IRIMPCONCN','IRSUICTHNK','IRAMDEYR','MHTINPPY')
+variable=c('ANALWT2_C','VESTR_C','VEREP','IRSEX','CATAGE','NEWRACE2','EDUHIGHCAT','IRWRKSTAT18','IRHHSIZ2','IRPRVHLT','INCOME','IRALCFY','IRMJFY',"IRCOCFY",'IRCIGFM','IRNICVAP30N','IRHALLUCYFQ','IRALCBNG30D','SUTINPPY','IRDSTNRV12','IRDSTEFF12','IRIMPCONCN','IRSUICTHNK','IRAMDEYR','MHTINPPY',"AMISUD5ANYO")
 #Create vector called variable_type that shows the data types of the different variables in the data
-variable_type=c('Continuous','Discrete','Discrete','Binary','Ordinal','Nominal','Ordinal','Nominal','Binary','Ordinal','Ordinal','Discrete','Discrete','Discrete','Discrete','Discrete','Discrete','Discrete','SUTINPPY','IRDSTNRV12','IRDSTEFF12','IRIMPCONCN','IRSUICTHNK','IRAMDEYR','MHTINPPY')
+variable_type=c('Continuous','Discrete','Discrete','Binary','Ordinal','Nominal','Ordinal','Nominal','Binary','Ordinal','Ordinal','Discrete','Discrete','Discrete','Discrete','Discrete','Discrete','Discrete','Binary','Ordinal','Ordinal','Ordinal','Binary','Binary','Binary','Nominal')
 #Create vector called variable_description that describes what the variables are
 variable_description=c("Final person-level sample weight","Variance stratum","Variance primary sampling unit","Sex at birth - IMPUTATION REVISED",
 "RC-Age category","RC-Race/Hispanicity recode","RC-Education Categories","Employment Status 18+ - IMPUTATION REVISED","PRIVATE HEALTH INSURANCE - IMPUTATION REVISED","RECODE - IMPUTATION-REVISED # PERSONS IN HH",
 "RC-TOTAL FAMILY INCOME RECODE","ALCOHOL FREQUENCY PAST YEAR - IMPUTATION REVISED","MARIJUANA FREQUENCY PAST YEAR - IMPUTATION REVISED","COCAINE FREQUENCY PAST YEAR - IMPUTATION REVISED","CIG FREQUENCY PAST MONTH - IMPUTATION REVISED",
-"NICOTINE VAPING FREQUENCY PAST MONTH - IMPUTATION REVISED","HALL FREQUENCY PAST YEAR - IMPUTATION REVISED","BINGE ALCOHOL FREQUENCY PAST MONTH - IMPUTATION REVISED","RC-RCVD SUB USE TREATMENT AS AN INPATIENT - PAST YEAR","HOW OFTEN FELT NERVOUS WRST MONTH - IMP REV","HOW OFTEN FELT EVERYTHING EFFORT WRST MONTH - IMP REV","DIFFICULTY CONCENTRATING ONE MO IN PST 12 MOS - IMP REV","ADULT SERIOUSLY THOUGHT ABOUT KILLING SELF PST YR - IMP REV","ADULT: PAST YEAR MAJOR DEPRESSIVE EPISODE (MDE) - IMP REV","RC-RCVD MENTAL HEALTH TREATMENT AS AN INPATIENT - PAST YEAR")
+"NICOTINE VAPING FREQUENCY PAST MONTH - IMPUTATION REVISED","HALL FREQUENCY PAST YEAR - IMPUTATION REVISED","BINGE ALCOHOL FREQUENCY PAST MONTH - IMPUTATION REVISED","RC-RCVD SUB USE TREATMENT AS AN INPATIENT - PAST YEAR","HOW OFTEN FELT NERVOUS WRST MONTH - IMP REV","HOW OFTEN FELT EVERYTHING EFFORT WRST MONTH - IMP REV","DIFFICULTY CONCENTRATING ONE MO IN PST 12 MOS - IMP REV","ADULT SERIOUSLY THOUGHT ABOUT KILLING SELF PST YR - IMP REV","ADULT: PAST YEAR MAJOR DEPRESSIVE EPISODE (MDE) - IMP REV","RC-RCVD MENTAL HEALTH TREATMENT AS AN INPATIENT - PAST YEAR","RC-ONLY IMP AMI, ONLY SUD, BOTH, OR NEITHER - PY-DSM-5-ANY")
 #Convert these created vectors into one dataframe
 dataset_desc<-data.frame(variable,variable_type,variable_description)
 #Display table neatly
@@ -64,7 +64,7 @@ https://www.samhsa.gov/data/data-we-collect/nsduh-national-survey-drug-use-and-h
 load("../data/NSDUH_2023.Rdata")
 ```
 
-We distill the 2023 NSDUH data down to the necessary variables (25):
+We distill the 2023 NSDUH data down to the necessary variables (26):
 
 1. Predictors
 2. Response variables
@@ -76,7 +76,7 @@ We distill the 2023 NSDUH data down to the necessary variables (25):
 #dplyr
 library(dplyr) #data wrangling and manipulation
 #Select a subset of the 2023 NSDUH data that has the 25 necessary columns
-data<-data %>% select(ANALWT2_C,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY)
+data<-data %>% select(ANALWT2_C,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY,AMISUD5ANYO)
 data
 ```
 
@@ -133,6 +133,10 @@ data$IRAMDEYR<-factor(data$IRAMDEYR,
 data$MHTINPPY<-factor(data$MHTINPPY,
                         levels=c(0,1),
                         labels=c("No","Yes"))
+#Decoding of AMISUD5ANYO column
+data$AMISUD5ANYO<-factor(data$AMISUD5ANYO,
+                        levels=c(1,2,3,4),
+                        labels=c("SUD only, no AMI","AMI only, no SUD","SUD and AMI","Neither SUD or AMI"))
 ```
 
 Finally, we change the values that are 91, 93, 991, or 993 to 0 (because the frequency would be 0 if they didn't use substances in the past year or past month) in the discrete substance use columns, so that future analysis of this data is easier. 
