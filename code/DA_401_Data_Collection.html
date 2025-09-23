@@ -498,11 +498,11 @@ employment, nicotine use, alcohol use, tobacco use, marijuana use, major
 depressive episode, suicidal thoughts, mental health service use, and
 substance use service use. We will be including all those variables in
 our data and more not expilicity mentioned, but strictly only imputed or
-recoded versions and selective versions of these variables. IMPUTED
-variables in the dataset are variables that had their missing values
-statistically imputed based on other information in the dataset. Recoded
-variables are variables derived from one or more imputed or edited
-variables.</p>
+recoded versions (no missing values) and selective versions of these
+variables. IMPUTED variables in the dataset are variables that had their
+missing values statistically imputed based on other information in the
+dataset. Recoded variables are variables derived from one or more
+imputed or edited variables.</p>
 <p>Limitations of this data include: (1) self-report bias; (2)
 cross-sectional (individuals interviewed at one point in time); (3)
 because the target population of the survey is the civilian,
@@ -533,14 +533,14 @@ from this 2023 NSDUH dataset:</p>
 <pre class="r"><code># R version: 4.5.1
 library(knitr) #for table display
 #Create vector called variable that has different variables of the data
-variable=c(&#39;ANALWT2_C&#39;,&#39;VESTR_C&#39;,&#39;VEREP&#39;,&#39;IRSEX&#39;,&#39;CATAGE&#39;,&#39;NEWRACE2&#39;,&#39;EDUHIGHCAT&#39;,&#39;IRWRKSTAT18&#39;,&#39;IRHHSIZ2&#39;,&#39;IRPRVHLT&#39;,&#39;INCOME&#39;,&#39;IRALCFY&#39;,&#39;IRMJFY&#39;,&quot;IRCOCFY&quot;,&#39;IRCIGFM&#39;,&#39;IRNICVAP30N&#39;,&#39;IRHALLUCYFQ&#39;,&#39;IRALCBNG30D&#39;,&#39;SUTINPPY&#39;,&#39;IRDSTNRV12&#39;,&#39;IRDSTEFF12&#39;,&#39;IRIMPCONCN&#39;,&#39;IRSUICTHNK&#39;,&#39;IRAMDEYR&#39;,&#39;MHTINPPY&#39;)
+variable=c(&#39;ANALWT2_C&#39;,&#39;VESTR_C&#39;,&#39;VEREP&#39;,&#39;IRSEX&#39;,&#39;CATAGE&#39;,&#39;NEWRACE2&#39;,&#39;EDUHIGHCAT&#39;,&#39;IRWRKSTAT18&#39;,&#39;IRHHSIZ2&#39;,&#39;IRPRVHLT&#39;,&#39;INCOME&#39;,&#39;IRALCFY&#39;,&#39;IRMJFY&#39;,&quot;IRCOCFY&quot;,&#39;IRCIGFM&#39;,&#39;IRNICVAP30N&#39;,&#39;IRHALLUCYFQ&#39;,&#39;IRALCBNG30D&#39;,&#39;SUTINPPY&#39;,&#39;IRDSTNRV12&#39;,&#39;IRDSTEFF12&#39;,&#39;IRIMPCONCN&#39;,&#39;IRSUICTHNK&#39;,&#39;IRAMDEYR&#39;,&#39;MHTINPPY&#39;,&quot;AMISUD5ANYO&quot;)
 #Create vector called variable_type that shows the data types of the different variables in the data
-variable_type=c(&#39;Continuous&#39;,&#39;Discrete&#39;,&#39;Discrete&#39;,&#39;Binary&#39;,&#39;Ordinal&#39;,&#39;Nominal&#39;,&#39;Ordinal&#39;,&#39;Nominal&#39;,&#39;Binary&#39;,&#39;Ordinal&#39;,&#39;Ordinal&#39;,&#39;Discrete&#39;,&#39;Discrete&#39;,&#39;Discrete&#39;,&#39;Discrete&#39;,&#39;Discrete&#39;,&#39;Discrete&#39;,&#39;Discrete&#39;,&#39;SUTINPPY&#39;,&#39;IRDSTNRV12&#39;,&#39;IRDSTEFF12&#39;,&#39;IRIMPCONCN&#39;,&#39;IRSUICTHNK&#39;,&#39;IRAMDEYR&#39;,&#39;MHTINPPY&#39;)
+variable_type=c(&#39;Continuous&#39;,&#39;Discrete&#39;,&#39;Discrete&#39;,&#39;Binary&#39;,&#39;Ordinal&#39;,&#39;Nominal&#39;,&#39;Ordinal&#39;,&#39;Nominal&#39;,&#39;Binary&#39;,&#39;Ordinal&#39;,&#39;Ordinal&#39;,&#39;Discrete&#39;,&#39;Discrete&#39;,&#39;Discrete&#39;,&#39;Discrete&#39;,&#39;Discrete&#39;,&#39;Discrete&#39;,&#39;Discrete&#39;,&#39;Binary&#39;,&#39;Ordinal&#39;,&#39;Ordinal&#39;,&#39;Ordinal&#39;,&#39;Binary&#39;,&#39;Binary&#39;,&#39;Binary&#39;,&#39;Nominal&#39;)
 #Create vector called variable_description that describes what the variables are
 variable_description=c(&quot;Final person-level sample weight&quot;,&quot;Variance stratum&quot;,&quot;Variance primary sampling unit&quot;,&quot;Sex at birth - IMPUTATION REVISED&quot;,
 &quot;RC-Age category&quot;,&quot;RC-Race/Hispanicity recode&quot;,&quot;RC-Education Categories&quot;,&quot;Employment Status 18+ - IMPUTATION REVISED&quot;,&quot;PRIVATE HEALTH INSURANCE - IMPUTATION REVISED&quot;,&quot;RECODE - IMPUTATION-REVISED # PERSONS IN HH&quot;,
 &quot;RC-TOTAL FAMILY INCOME RECODE&quot;,&quot;ALCOHOL FREQUENCY PAST YEAR - IMPUTATION REVISED&quot;,&quot;MARIJUANA FREQUENCY PAST YEAR - IMPUTATION REVISED&quot;,&quot;COCAINE FREQUENCY PAST YEAR - IMPUTATION REVISED&quot;,&quot;CIG FREQUENCY PAST MONTH - IMPUTATION REVISED&quot;,
-&quot;NICOTINE VAPING FREQUENCY PAST MONTH - IMPUTATION REVISED&quot;,&quot;HALL FREQUENCY PAST YEAR - IMPUTATION REVISED&quot;,&quot;BINGE ALCOHOL FREQUENCY PAST MONTH - IMPUTATION REVISED&quot;,&quot;RC-RCVD SUB USE TREATMENT AS AN INPATIENT - PAST YEAR&quot;,&quot;HOW OFTEN FELT NERVOUS WRST MONTH - IMP REV&quot;,&quot;HOW OFTEN FELT EVERYTHING EFFORT WRST MONTH - IMP REV&quot;,&quot;DIFFICULTY CONCENTRATING ONE MO IN PST 12 MOS - IMP REV&quot;,&quot;ADULT SERIOUSLY THOUGHT ABOUT KILLING SELF PST YR - IMP REV&quot;,&quot;ADULT: PAST YEAR MAJOR DEPRESSIVE EPISODE (MDE) - IMP REV&quot;,&quot;RC-RCVD MENTAL HEALTH TREATMENT AS AN INPATIENT - PAST YEAR&quot;)
+&quot;NICOTINE VAPING FREQUENCY PAST MONTH - IMPUTATION REVISED&quot;,&quot;HALL FREQUENCY PAST YEAR - IMPUTATION REVISED&quot;,&quot;BINGE ALCOHOL FREQUENCY PAST MONTH - IMPUTATION REVISED&quot;,&quot;RC-RCVD SUB USE TREATMENT AS AN INPATIENT - PAST YEAR&quot;,&quot;HOW OFTEN FELT NERVOUS WRST MONTH - IMP REV&quot;,&quot;HOW OFTEN FELT EVERYTHING EFFORT WRST MONTH - IMP REV&quot;,&quot;DIFFICULTY CONCENTRATING ONE MO IN PST 12 MOS - IMP REV&quot;,&quot;ADULT SERIOUSLY THOUGHT ABOUT KILLING SELF PST YR - IMP REV&quot;,&quot;ADULT: PAST YEAR MAJOR DEPRESSIVE EPISODE (MDE) - IMP REV&quot;,&quot;RC-RCVD MENTAL HEALTH TREATMENT AS AN INPATIENT - PAST YEAR&quot;,&quot;RC-ONLY IMP AMI, ONLY SUD, BOTH, OR NEITHER - PY-DSM-5-ANY&quot;)
 #Convert these created vectors into one dataframe
 dataset_desc&lt;-data.frame(variable,variable_type,variable_description)
 #Display table neatly
@@ -653,44 +653,50 @@ REVISED</td>
 </tr>
 <tr class="odd">
 <td align="left">SUTINPPY</td>
-<td align="left">SUTINPPY</td>
+<td align="left">Binary</td>
 <td align="left">RC-RCVD SUB USE TREATMENT AS AN INPATIENT - PAST
 YEAR</td>
 </tr>
 <tr class="even">
 <td align="left">IRDSTNRV12</td>
-<td align="left">IRDSTNRV12</td>
+<td align="left">Ordinal</td>
 <td align="left">HOW OFTEN FELT NERVOUS WRST MONTH - IMP REV</td>
 </tr>
 <tr class="odd">
 <td align="left">IRDSTEFF12</td>
-<td align="left">IRDSTEFF12</td>
+<td align="left">Ordinal</td>
 <td align="left">HOW OFTEN FELT EVERYTHING EFFORT WRST MONTH - IMP
 REV</td>
 </tr>
 <tr class="even">
 <td align="left">IRIMPCONCN</td>
-<td align="left">IRIMPCONCN</td>
+<td align="left">Ordinal</td>
 <td align="left">DIFFICULTY CONCENTRATING ONE MO IN PST 12 MOS - IMP
 REV</td>
 </tr>
 <tr class="odd">
 <td align="left">IRSUICTHNK</td>
-<td align="left">IRSUICTHNK</td>
+<td align="left">Binary</td>
 <td align="left">ADULT SERIOUSLY THOUGHT ABOUT KILLING SELF PST YR - IMP
 REV</td>
 </tr>
 <tr class="even">
 <td align="left">IRAMDEYR</td>
-<td align="left">IRAMDEYR</td>
+<td align="left">Binary</td>
 <td align="left">ADULT: PAST YEAR MAJOR DEPRESSIVE EPISODE (MDE) - IMP
 REV</td>
 </tr>
 <tr class="odd">
 <td align="left">MHTINPPY</td>
-<td align="left">MHTINPPY</td>
+<td align="left">Binary</td>
 <td align="left">RC-RCVD MENTAL HEALTH TREATMENT AS AN INPATIENT - PAST
 YEAR</td>
+</tr>
+<tr class="even">
+<td align="left">AMISUD5ANYO</td>
+<td align="left">Nominal</td>
+<td align="left">RC-ONLY IMP AMI, ONLY SUD, BOTH, OR NEITHER -
+PY-DSM-5-ANY</td>
 </tr>
 </tbody>
 </table>
@@ -703,7 +709,7 @@ use R data file (downloadable) can be found here: <a href="https://www.samhsa.go
 #Load in the data
 load(&quot;../data/NSDUH_2023.Rdata&quot;)</code></pre>
 <p>We distill the 2023 NSDUH data down to the necessary variables
-(25):</p>
+(26):</p>
 <ol style="list-style-type: decimal">
 <li>Predictors</li>
 <li>Response variables</li>
@@ -711,35 +717,31 @@ load(&quot;../data/NSDUH_2023.Rdata&quot;)</code></pre>
 <li>Survey Design variables (ANALWT2_C,VESTR_C,VEREP)</li>
 <li>Filter variables (CATAGE,NEWRACE2)</li>
 </ol>
-<p>Then, we filter the data down to multiracial young adults aged 18-25
-(CATAGE==2 &amp; NEWRACE2==6). We do this with one function
-(subset(data, subset, select…) of base R).</p>
 <pre class="r"><code>#Required packages:
 #dplyr
 library(dplyr) #data wrangling and manipulation
 #Select a subset of the 2023 NSDUH data that has the 25 necessary columns
-#and only includes multiracial young adults aged 18-25
-data&lt;-subset(data, CATAGE==2 &amp; NEWRACE2==6, select = c(ANALWT2_C,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY))
+data&lt;-data %&gt;% select(ANALWT2_C,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY,AMISUD5ANYO)
 data</code></pre>
-<pre><code>## # A tibble: 826 × 25
+<pre><code>## # A tibble: 56,705 × 26
 ##    ANALWT2_C VESTR_C VEREP IRSEX CATAGE NEWRACE2 EDUHIGHCAT IRWRKSTAT18 IRHHSIZ2
 ##        &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;      &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;
-##  1      36.4   40046     2     1      2        6          4           1        1
-##  2      19.5   40048     2     2      2        6          3           1        2
-##  3      70.3   40028     1     2      2        6          4           4        3
-##  4     495.    40009     1     1      2        6          2           1        3
-##  5     555.    40001     2     2      2        6          4           1        1
-##  6      81.7   40026     1     2      2        6          1           1        2
-##  7    3195.    40041     2     1      2        6          3           4        2
-##  8    1777.    40029     2     2      2        6          2           1        1
-##  9     817.    40026     1     2      2        6          2           1        5
-## 10     118.    40016     2     2      2        6          2           4        1
-## # ℹ 816 more rows
-## # ℹ 16 more variables: IRPRVHLT &lt;dbl&gt;, INCOME &lt;dbl&gt;, IRALCFY &lt;dbl&gt;,
+##  1     3276.   40031     2     1      4        7          3           4        3
+##  2    15630.   40021     2     1      4        1          2           1        3
+##  3     4018.   40043     1     2      4        4          2           4        3
+##  4    10712.   40030     2     1      1        7          5          99        5
+##  5     8195.   40023     2     1      4        6          4           1        3
+##  6     3771.   40048     1     1      2        1          2           1        6
+##  7     1473.   40003     1     1      3        1          4           1        2
+##  8     4618.   40038     1     1      4        1          4           2        1
+##  9     6612.   40049     2     2      3        5          4           1        4
+## 10     3230.   40049     1     2      1        1          5          99        4
+## # ℹ 56,695 more rows
+## # ℹ 17 more variables: IRPRVHLT &lt;dbl&gt;, INCOME &lt;dbl&gt;, IRALCFY &lt;dbl&gt;,
 ## #   IRMJFY &lt;dbl&gt;, IRCOCFY &lt;dbl&gt;, IRCIGFM &lt;dbl&gt;, IRNICVAP30N &lt;dbl&gt;,
 ## #   IRHALLUCYFQ &lt;dbl&gt;, IRALCBNG30D &lt;dbl&gt;, SUTINPPY &lt;dbl&gt;, IRDSTNRV12 &lt;dbl&gt;,
 ## #   IRDSTEFF12 &lt;dbl&gt;, IRIMPCONCN &lt;dbl&gt;, IRSUICTHNK &lt;dbl&gt;, IRAMDEYR &lt;dbl&gt;,
-## #   MHTINPPY &lt;dbl&gt;</code></pre>
+## #   MHTINPPY &lt;dbl&gt;, AMISUD5ANYO &lt;dbl&gt;</code></pre>
 <p>Subsequently, we adjust the values in the columns from codes to
 descriptive values to make them more easily interpretable during our
 exploratory analysis stage. But, if needed, we will do value encoding to
@@ -748,14 +750,6 @@ analysis.</p>
 <pre class="r"><code>#Decoding of IRSEX column
 data$IRSEX&lt;-factor(data$IRSEX, 
                     levels=c(1,2),labels=c(&#39;Male&#39;,&quot;Female&quot;))
-#Decoding of CATAGE column
-data$CATAGE&lt;-factor(data$CATAGE, 
-                    levels=c(2),
-                    labels=c(&quot;18-25 Years Old&quot;))
-#Decoding of NEWRACE2 column
-data$NEWRACE2&lt;-factor(data$NEWRACE2, 
-                    levels=c(6),
-                    labels=c(&quot;NonHisp more than one race&quot;))
 #Decoding of EDUHIGHCAT column
 data$EDUHIGHCAT&lt;-factor(data$EDUHIGHCAT, 
                     levels=c(1,2,3,4,5),
@@ -803,7 +797,12 @@ data$IRAMDEYR&lt;-factor(data$IRAMDEYR,
 #Decoding of MHTINPPY column
 data$MHTINPPY&lt;-factor(data$MHTINPPY,
                         levels=c(0,1),
-                        labels=c(&quot;No&quot;,&quot;Yes&quot;))</code></pre>
+                        labels=c(&quot;No&quot;,&quot;Yes&quot;))
+#Decoding of AMISUD5ANYO column
+#Note: missing values will be filtered out when examine the population subset: multracial young adults
+data$AMISUD5ANYO&lt;-factor(data$AMISUD5ANYO,
+                        levels=c(1,2,3,4),
+                        labels=c(&quot;SUD only, no AMI&quot;,&quot;AMI only, no SUD&quot;,&quot;SUD and AMI&quot;,&quot;Neither SUD or AMI&quot;))</code></pre>
 <p>Finally, we change the values that are 91, 93, 991, or 993 to 0
 (because the frequency would be 0 if they didn’t use substances in the
 past year or past month) in the discrete substance use columns, so that

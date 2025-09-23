@@ -25,7 +25,7 @@ The NSDUH data was collected with face-to-face interviews in people’s homes an
 
 They used a statistical disclosure limitation method called MASSC (Micro Agglomeration, optimal probabilistic Substitution, optimal probabilistic Subsampling, and optimal sampling weight Calibration) to protect the confidentialityn of respondents All directly identifying information (such as name, phone number, and address) on the file was eliminated. Census region, state, and other geographic identifiers were also removed, as well as information on whether the interview was administered via the web or in person.
 
-The NSDUH data contains variables such as age, race, education, employment, nicotine use, alcohol use, tobacco use, marijuana use, major depressive episode, suicidal thoughts, mental health service use, and substance use service use. We will be including all those variables in our data and more not expilicity mentioned, but strictly only imputed or recoded versions and selective versions of these variables. IMPUTED variables in the dataset are variables that had their missing values statistically imputed based on other information in the dataset.
+The NSDUH data contains variables such as age, race, education, employment, nicotine use, alcohol use, tobacco use, marijuana use, major depressive episode, suicidal thoughts, mental health service use, and substance use service use. We will be including all those variables in our data and more not expilicity mentioned, but strictly only imputed or recoded versions (no missing values) and selective versions of these variables. IMPUTED variables in the dataset are variables that had their missing values statistically imputed based on other information in the dataset.
 Recoded variables are variables derived from one or more imputed or edited variables. 
 
 Limitations of this data include: (1) self-report bias; (2) cross-sectional (individuals interviewed at one point in time); (3) because the target population of the survey is the civilian, noninstitutionalized population of the United States, a small proportion (less than 3 percent) of the population is excluded; and (4) due to methodological issues, NSDUH estimates from 2021 onward are not comparable with estimates prior to 2021. 
@@ -134,6 +134,7 @@ data$MHTINPPY<-factor(data$MHTINPPY,
                         levels=c(0,1),
                         labels=c("No","Yes"))
 #Decoding of AMISUD5ANYO column
+#Note: missing values will be filtered out when examine the population subset: multracial young adults
 data$AMISUD5ANYO<-factor(data$AMISUD5ANYO,
                         levels=c(1,2,3,4),
                         labels=c("SUD only, no AMI","AMI only, no SUD","SUD and AMI","Neither SUD or AMI"))
