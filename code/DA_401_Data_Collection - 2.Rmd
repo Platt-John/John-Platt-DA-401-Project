@@ -1,0 +1,160 @@
+---
+title: "Illicit Substance Use and Mental Health Among Multiracial Young Adults Aged 18 to 25 - Data Collection 2"
+author: "John Platt"
+date: "2025-09-20"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+## Introduction
+We collect the 2021-2023 NSDUH data, accounting for the following:
+
+1. Predictors
+2. Response variables
+3. Covariates
+4. Survey Design variables (ANALWT2_C,VESTR_C,VEREP)
+5. Filter variables (CATAGE,NEWRACE2)
+
+Then, we adjust the values in the columns from codes to descriptive values to make them more easily interpretable. We also change some values in the discrete columns to 0 to make the upcoming analysis easier. 
+
+## Information about the 2021-2023 NSDUH dataset
+The 2021-2023 NSDUH data is the leading source of population-based statistical data on behavioral health information like tobacco use, alcohol use, drug use, and mental health. It also contains data on substance use disorders and receipt of substance use as well as mental health care. Its unit of observation is the civilian, noninstitutionalized population aged 12 or older in the United States. So, the survey covers residents of households, persons in non-institutional group quarters, and civilians living on military bases. The 2021-2023 dataset has about 170,000 rows and 2,600 columns, revealing the importance of narrowing down the data to specific columns (e.g. illicit substance use, major depressive episode, SI…) and population subsets (multiracial young adults in our case). The dataset combined data from the 2021 PUF (public use file), 2022 PUF, and 2023 PUF
+
+The NSDUH data was collected with face-to-face interviews in people’s homes and, since 2020, web-based interviews. The sample selected was a state-based, multistage, stratified area probability sample. Stratification improves precision in sampling by ensuring all major geographic and demographic groups are represented. In the 2023 NSDUH case, the primary strata in the sample were the 50 U.S. states, and, within each state, secondary stratification was used by Census tracts and geographic areas to ensure representation of urban, suburban, and rural populations. Then, oversampling occurs within strata for key groups (e.g. young adults aged 18-25).
+
+They used a statistical disclosure limitation method called MASSC (Micro Agglomeration, optimal probabilistic Substitution, optimal probabilistic Subsampling, and optimal sampling weight Calibration) to protect the confidentialityn of respondents All directly identifying information (such as name, phone number, and address) on the file was eliminated. Census region, state, and other geographic identifiers were also removed, as well as information on whether the interview was administered via the web or in person.
+
+The NSDUH data contains variables such as age, race, education, employment, nicotine use, alcohol use, tobacco use, marijuana use, major depressive episode, suicidal thoughts, mental health service use, and substance use service use. We will be including all those variables in our data and more not expilicity mentioned, but strictly only imputed or recoded versions (no missing values) and selective versions of these variables. IMPUTED variables in the dataset are variables that had their missing values statistically imputed based on other information in the dataset.
+Recoded variables are variables derived from one or more imputed or edited variables. 
+
+Limitations of this data include: (1) self-report bias; (2) cross-sectional (individuals interviewed at one point in time); (3) because the target population of the survey is the civilian, noninstitutionalized population of the United States, a small proportion (less than 3 percent) of the population is excluded; and (4) due to methodological issues, NSDUH estimates from 2021 onward are not comparable with estimates prior to 2021. 
+
+The 2021-2023 NSDUH survey used weights to correct for nonresponses, align the sample with U.S. census population totals, and incorporate MASSC calibration to make the survey data confidential. Without weights, estimates would be biased toward the sample instead of the U.S. population, so we will need to account for those weights during our analysis. We will use the variable in the survey data containing the final weights after calibration from all three years (ANALWT2_C3) to account for weights in our analysis. 
+
+There are variables about the survey design that we will need to account for in our analysis as well, including VEREP (variance estimation [pseudo] replicate within stratum OR cluster) and VESTR (variance estimation [pseudo] stratum). This is because the sample selected in the 2023 NSDUH data was not collected with a simple random sample, but rather a state-based, multistage, stratified area probability sample.
+
+## Dataset Variable Descriptions
+Below is a table that describes the key variables that we include from this 2021-2023 NSDUH dataset:
+
+```{r dataframe on variables}
+# R version: 4.5.1
+library(knitr) #for table display
+#Create vector called variable that has different variables of the data
+variable=c('ANALWT2_C3','YEAR','VESTR_C','VEREP','IRSEX','CATAGE','NEWRACE2','EDUHIGHCAT','IRWRKSTAT18','IRHHSIZ2','IRPRVHLT','INCOME','IRALCFY','IRMJFY',"IRCOCFY",'IRCIGFM','IRNICVAP30N','IRHALLUCYFQ','IRALCBNG30D','SUTINPPY','IRDSTNRV12','IRDSTEFF12','IRIMPCONCN','IRSUICTHNK','IRAMDEYR','MHTINPPY',"AMISUD5ANYO")
+#Create vector called variable_type that shows the data types of the different variables in the data
+variable_type=c('Continuous','Discrete','Discrete','Discrete','Binary','Ordinal','Nominal','Ordinal','Nominal','Binary','Ordinal','Ordinal','Discrete','Discrete','Discrete','Discrete','Discrete','Discrete','Discrete','Binary','Ordinal','Ordinal','Ordinal','Binary','Binary','Binary','Nominal')
+#Create vector called variable_description that describes what the variables are
+variable_description=c("Final person-level sample weight for three year data analysis","YEAR IN WHICH DATA WAS COLLECTED","Variance stratum","Variance primary sampling unit","Sex at birth - IMPUTATION REVISED",
+"RC-Age category","RC-Race/Hispanicity recode","RC-Education Categories","Employment Status 18+ - IMPUTATION REVISED","PRIVATE HEALTH INSURANCE - IMPUTATION REVISED","RECODE - IMPUTATION-REVISED # PERSONS IN HH",
+"RC-TOTAL FAMILY INCOME RECODE","ALCOHOL FREQUENCY PAST YEAR - IMPUTATION REVISED","MARIJUANA FREQUENCY PAST YEAR - IMPUTATION REVISED","COCAINE FREQUENCY PAST YEAR - IMPUTATION REVISED","CIG FREQUENCY PAST MONTH - IMPUTATION REVISED",
+"NICOTINE VAPING FREQUENCY PAST MONTH - IMPUTATION REVISED","HALL FREQUENCY PAST YEAR - IMPUTATION REVISED","BINGE ALCOHOL FREQUENCY PAST MONTH - IMPUTATION REVISED","RC-RCVD SUB USE TREATMENT AS AN INPATIENT - PAST YEAR","HOW OFTEN FELT NERVOUS WRST MONTH - IMP REV","HOW OFTEN FELT EVERYTHING EFFORT WRST MONTH - IMP REV","DIFFICULTY CONCENTRATING ONE MO IN PST 12 MOS - IMP REV","ADULT SERIOUSLY THOUGHT ABOUT KILLING SELF PST YR - IMP REV","ADULT: PAST YEAR MAJOR DEPRESSIVE EPISODE (MDE) - IMP REV","RC-RCVD MENTAL HEALTH TREATMENT AS AN INPATIENT - PAST YEAR","RC-ONLY IMP AMI, ONLY SUD, BOTH, OR NEITHER - PY-DSM-5-ANY")
+#Convert these created vectors into one dataframe
+dataset_desc<-data.frame(variable,variable_type,variable_description)
+#Display table neatly
+kable(dataset_desc)
+```
+
+## Data Collection 
+Now we read in the 2021-2023 NSDUH data. A link to the 2021-2023 NSDUH public use R data file (downloadable) can be found here:
+https://www.samhsa.gov/data/data-we-collect/nsduh-national-survey-drug-use-and-health/datafiles
+```{r read in 2023 NSDUH data, message=FALSE, warning=FALSE}
+#File -> New Project -> Set existing GitHub Repository as working directory with data as a subfolder in the repository and the NSDUH_2023.Rdata file in the subfolder
+#Load in the data
+load("../data/NSDUH_2021_2023.Rdata")
+```
+
+We distill the 2021-2023 NSDUH data down to the necessary variables (27):
+
+1. Predictors
+2. Response variables
+3. Covariates
+4. Survey Design variables (ANALWT2_C,VESTR_C,VEREP)
+5. Filter variables (CATAGE,NEWRACE2)
+```{r 2023 NSDUH variable selection, message=FALSE, warning=FALSE, include=TRUE}
+#Required packages:
+#dplyr
+library(dplyr) #data wrangling and manipulation
+#Select a subset of the 2023 NSDUH data that has the 25 necessary columns
+data<-data %>% select(ANALWT2_C3,YEAR,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY,AMISUD5ANYO)
+data
+```
+
+Subsequently, we adjust the values in the columns from codes to descriptive values to make them more easily interpretable during our exploratory analysis stage. But, if needed, we will do value encoding to covert the values back to codes during our advanced correlative analysis.
+```{r value decoding, message=FALSE, warning=FALSE}
+#Decoding of IRSEX column
+data$IRSEX<-factor(data$IRSEX, 
+                    levels=c(1,2),labels=c('Male',"Female"))
+#Decoding of EDUHIGHCAT column
+data$EDUHIGHCAT<-factor(data$EDUHIGHCAT, 
+                    levels=c(1,2,3,4,5),
+                    labels=c("Less high school","High school grad","Some coll/Assoc Dg","College graduate","12 to 17 year olds"))
+#Decoding of IRWRKSTAT18 column
+data$IRWRKSTAT18<-factor(data$IRWRKSTAT18, 
+                    levels=c(1,2,3,4,99),
+                    labels=c("Employed full time","Employed part time","Unemployed","Other (incl. not in labor force)","12-17 year olds"))
+#Decoding of IRPRVHLT column
+data$IRPRVHLT<-factor(data$IRPRVHLT, 
+                    levels=c(1,2),
+                    labels=c("Yes","No"))
+#Decoding of IRHHSIZ2 column
+data$IRHHSIZ2<-factor(data$IRHHSIZ2, 
+                    levels=c(1,2,3,4,5,6),
+                    labels=c("One person in household","Two people in household","Three people in household","Four people in household","Five people in household","6 or more people in household"))
+#Decoding of INCOME column
+data$INCOME<-factor(data$INCOME,
+                    levels=c(1,2,3,4),
+                    labels=c("Less than $20,000","$20,000-$49,999","$50,000-$74,999","$75,000 or More"))
+#Decoding of SUTINPPY column
+data$SUTINPPY<-factor(data$SUTINPPY, 
+                    levels=c(0,1),
+                    labels=c("No","Yes"))
+#Decoding of IRDSTNRV12 column
+data$IRDSTNRV12<-factor(data$IRDSTNRV12, 
+                    levels=c(1,2,3,4,5,99),
+                    labels=c("All of the time","Most of the time","Some of the time","A little of the time","None of the time","LEGITIMATE SKIP"))
+#Decoding of IRDSTEFF12 column
+data$IRDSTEFF12<-factor(data$IRDSTEFF12,
+                        levels=c(1,2,3,4,5,99),
+                        labels=c("All of the time","Most of the time","Some of the time","A little of the time","None of the time","LEGITIMATE SKIP"))
+#Decoding of IRIMPCONCN column
+data$IRIMPCONCN<-factor(data$IRIMPCONCN,
+                        levels=c(1,2,3,4,99),
+                        labels=c("No difficulty","Mild difficultly","Moderate difficulty","Severe difficulty","LEGITIMATE SKIP"))
+#Decoding of IRSUICTHNK column
+data$IRSUICTHNK<-factor(data$IRSUICTHNK,
+                        levels=c(0,1),
+                        labels=c("No","Yes"))
+#Decoding of IRAMDEYR column
+data$IRAMDEYR<-factor(data$IRAMDEYR,
+                        levels=c(0,1),
+                        labels=c("No","Yes"))
+#Decoding of MHTINPPY column
+data$MHTINPPY<-factor(data$MHTINPPY,
+                        levels=c(0,1),
+                        labels=c("No","Yes"))
+#Decoding of AMISUD5ANYO column
+#Note: missing values will be filtered out when examine the population subset: multracial young adults
+data$AMISUD5ANYO<-factor(data$AMISUD5ANYO,
+                        levels=c(1,2,3,4),
+                        labels=c("SUD only, no AMI","AMI only, no SUD","SUD and AMI","Neither SUD or AMI"))
+```
+
+Finally, we change the values that are 91, 93, 991, or 993 to 0 (because the frequency would be 0 if they didn't use substances in the past year or past month) in the discrete substance use columns, so that future analysis of this data is easier. 
+
+Then, we export the resulting data to a CSV so that it can be used easily for analysis in Python and R.
+```{r value replacement, message=FALSE, warning=FALSE}
+# Replace all 91s with 0 in the entire data frame
+data[data == 91] <- 0
+# Replace all 93s with 0 in the entire data frame
+data[data == 93] <- 0
+# Replace all 991s with 0 in the entire data frame
+data[data == 991] <- 0
+# Replace all 993s with 0 in the entire data frame
+data[data == 993] <- 0
+
+#Export cleaned dataset to CSV
+write.csv(x = data, file = "NSDUH_2021_2023.csv")
+```
+
+
