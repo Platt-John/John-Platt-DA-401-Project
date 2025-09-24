@@ -59,9 +59,9 @@ kable(dataset_desc)
 Now we read in the 2021-2023 NSDUH data. A link to the 2021-2023 NSDUH public use R data file (downloadable) can be found here:
 https://www.samhsa.gov/data/data-we-collect/nsduh-national-survey-drug-use-and-health/datafiles
 ```{r read in 2023 NSDUH data, message=FALSE, warning=FALSE}
-#File -> New Project -> Set existing GitHub Repository as working directory with data as a subfolder in the repository and the NSDUH_2023.Rdata file in the subfolder
+#File -> New Project -> Set existing GitHub Repository as working directory with data2 as a subfolder outside the repository and the NSDUH_2023.Rdata file in the subfolder
 #Load in the data
-load("../data/NSDUH_2021_2023.Rdata")
+load("C:/Users/John Platt/OneDrive/data2/NSDUH_2021_2023.Rdata")
 ```
 
 We distill the 2021-2023 NSDUH data down to the necessary variables (27):
