@@ -1,0 +1,149 @@
+---
+title: "DA 401 Data Exploration Final Part"
+author: "John Platt"
+date: "2025-09-25"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+## Introduction
+We perform the final part of our data exploration on the 2021-23 NSDUH data, using the following method: weighted 2 sample t-tests. We do this method to capture initial, significant associations between our predictor illicit substance use variables and our response mental health variables. 
+
+## Weighted 2 Sample t-tests
+We accomplish the final part of our data exploration.
+
+```{r specifying our survey design, message=FALSE, warning=FALSE}
+#Load in cleaned dataset from data folder of repository
+nsduh_2123<-read.csv("C:/Users/John Platt/OneDrive/DA301Project/John-Platt-DA-401-Project/data/NSDUH_2021_2023.csv")
+#Install survey package
+library(survey) #Library for survey design
+
+options(survey.lonely.psu = "adjust")  #common & documented choice to adjust variance if there are single psus within stratum
+
+#Specify survey design
+des <- svydesign(
+  id      = ~VEREP, #PSU/cluster id
+  strata  = ~VESTR_C, #variance strata
+  weights = ~ANALWT2_C3, #analysis weight
+  data    = nsduh_2123, #2021-2023 NSDUH dataframe
+  nest = TRUE
+)
+```
+
+```{r weighted 2 sample t-test between marijuana use and MDE for young adults, include=TRUE}
+#Compare means within CATAGE==2
+tt <- svyttest(IRMJFY ~ IRAMDEYR, design = subset(des, CATAGE == 2))
+tt
+svyby(
+  ~IRMJFY, #outcome variable
+  ~IRAMDEYR, #grouping variable (two categories)
+  subset(des, CATAGE == 2), #subset population
+  svymean, #survey weighted mean
+  vartype = c("se", "ci")   #include SEs and 95% CIs
+)
+```
+
+```{r weighted 2 sample t-test between cocaine use and MDE for young adults, include=TRUE}
+#Compare means within CATAGE==2
+tt <- svyttest(IRCOCFY ~ IRAMDEYR, design = subset(des, CATAGE == 2))
+tt
+svyby(
+  ~IRCOCFY, #outcome variable
+  ~IRAMDEYR, #grouping variable (two categories)
+  subset(des, CATAGE == 2), #subset population
+  svymean, #survey weighted mean
+  vartype = c("se", "ci")   #include SEs and 95% CIs
+)
+```
+
+```{r weighted 2 sample t-test between hallucinogen use and MDE for young adults, include=TRUE}
+#Compare means within CATAGE==2
+tt <- svyttest(IRHALLUCYFQ ~ IRAMDEYR, design = subset(des, CATAGE == 2))
+tt
+svyby(
+  ~IRHALLUCYFQ, #outcome variable
+  ~IRAMDEYR, #grouping variable (two categories)
+  subset(des, CATAGE == 2), #subset population
+  svymean, #survey weighted mean
+  vartype = c("se", "ci")   #include SEs and 95% CIs
+)
+```
+
+```{r weighted 2 sample t-test between marijuana use and suicidal thoughts for young adults, include=TRUE}
+#Compare means within CATAGE==2
+tt <- svyttest(IRMJFY ~ IRSUICTHNK, design = subset(des, CATAGE == 2))
+tt
+svyby(
+  ~IRMJFY, #outcome variable
+  ~IRSUICTHNK, #grouping variable (two categories)
+  subset(des, CATAGE == 2), #subset population
+  svymean, #survey weighted mean
+  vartype = c("se", "ci")   #include SEs and 95% CIs
+)
+```
+
+```{r weighted 2 sample t-test between cocaine use and suicidal thoughts for young adults, include=TRUE}
+#Compare means within CATAGE==2
+tt <- svyttest(IRCOCFY ~ IRSUICTHNK, design = subset(des, CATAGE == 2))
+tt
+svyby(
+  ~IRCOCFY, #outcome variable
+  ~IRSUICTHNK, #grouping variable (two categories)
+  subset(des, CATAGE == 2), #subset population
+  svymean, #survey weighted mean
+  vartype = c("se", "ci")   #include SEs and 95% CIs
+)
+```
+
+```{r weighted 2 sample t-test between hallucinogen use and suicidal thoughts for young adults, include=TRUE}
+#Compare means within CATAGE==2
+tt <- svyttest(IRHALLUCYFQ ~ IRSUICTHNK, design = subset(des, CATAGE == 2))
+tt
+svyby(
+  ~IRHALLUCYFQ, #outcome variable
+  ~IRSUICTHNK, #grouping variable (two categories)
+  subset(des, CATAGE == 2), #subset population
+  svymean, #survey weighted mean
+  vartype = c("se", "ci")   #include SEs and 95% CIs
+)
+```
+
+```{r weighted 2 sample t-test between marijuana use and receiving inpatient mental health treatment for young adults, include=TRUE}
+#Compare means within CATAGE==2
+tt <- svyttest(IRMJFY ~ MHTINPPY, design = subset(des, CATAGE == 2))
+tt
+svyby(
+  ~IRMJFY, #outcome variable
+  ~MHTINPPY, #grouping variable (two categories)
+  subset(des, CATAGE == 2), #subset population
+  svymean, #survey weighted mean
+  vartype = c("se", "ci")   #include SEs and 95% CIs
+)
+```
+
+```{r weighted 2 sample t-test between cocaine use and receiving inpatient mental health treatment for young adults, include=TRUE}
+#Compare means within CATAGE==2
+tt <- svyttest(IRCOCFY ~ MHTINPPY, design = subset(des, CATAGE == 2))
+tt
+svyby(
+  ~IRCOCFY, #outcome variable
+  ~MHTINPPY, #grouping variable (two categories)
+  subset(des, CATAGE == 2), #subset population
+  svymean, #survey weighted mean
+  vartype = c("se", "ci")   #include SEs and 95% CIs
+)
+```
+
+```{r weighted 2 sample t-test between hallucinogen use and receiving inpatient mental health treatment for young adults, include=TRUE}
+#Compare means within CATAGE==2
+tt <- svyttest(IRHALLUCYFQ ~ MHTINPPY, design = subset(des, CATAGE == 2))
+tt
+svyby(
+  ~IRHALLUCYFQ, #outcome variable
+  ~MHTINPPY, #grouping variable (two categories)
+  subset(des, CATAGE == 2), #subset population
+  svymean, #survey weighted mean
+  vartype = c("se", "ci")   #include SEs and 95% CIs
+)
+```
