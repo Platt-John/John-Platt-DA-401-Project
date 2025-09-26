@@ -6,10 +6,10 @@
 To what extent is illicit substance use (e.g. marijuana, cocaine, hallucinogens) associated with mental health issues (e.g. major depressive episode, suicidal thoughts) among young adults aged 18-25?
 
 ## Data Source
-To answer my research question, I utilize the 2023 NSDUH (National Survey on Drug Use and Health) public use data, which is the leading source of population-based statistical data on behavioral health information like tobacco use, alcohol use, drug use, and mental health.
+To answer my research question, I utilize the 2021-2023 NSDUH (National Survey on Drug Use and Health) public use data, which is the leading source of population-based statistical data on behavioral health information like tobacco use, alcohol use, drug use, and mental health.
 
 ## Methods
-I create barplots, boxplots, and other visualizations to perform initial exploration, and do inferential statistics to see initial associations. Subsequently, I use logistic regression and RCS as well as threshold analysis to see the extent and strength of the associations. Finally, I use the Random Forest machine learning algorithm to develop a high-accuracy predictive model between illicit substance use and mental health issues (if time permits).
+I create barplots with error bars to perform initial exploration to gain an understanding of my sample, and do additional bar plots (averages on y axis) as well as inferential statistics to see initial associations. Subsequently, I use logistic regression and RCS as well as threshold analysis to see the extent and strength of the associations. Finally, I use the Random Forest machine learning algorithm to develop a high-accuracy predictive model between illicit substance use and mental health issues (if time permits).
 
 ## Expected Timeline
 ![alt text](https://github.com/Platt-John/John-Platt-DA-401-Project/blob/main/figures/Final%20Project%20Timeline.png)
