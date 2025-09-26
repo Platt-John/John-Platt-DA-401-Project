@@ -1,6 +1,6 @@
 # DA401 Capstone Project - John Platt
 
-## Illicit Substance Use and Mental Health Among Multiracial Young Adults in the United States
+## Illicit Substance Use and Mental Health Among Young Adults in the United States
 
 ## Research Question
 To what extent is illicit substance use (e.g. marijuana, cocaine, hallucinogens) associated with mental health issues (e.g. major depressive episode, suicidal thoughts) among young adults aged 18-25?
