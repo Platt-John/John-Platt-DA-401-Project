@@ -86,7 +86,7 @@ Subsequently, we adjust the values in the columns from codes to descriptive valu
 data$IRSEX<-factor(data$IRSEX, 
                     levels=c(1,2),labels=c('Male',"Female"))
 #Decoding of NEWRACE2 column
-data$IRSEX<-factor(data$NEWRACE2, 
+data$NEWRACE2<-factor(data$NEWRACE2, 
                     levels=c(1,2,3,4,5,6,7),labels=c('Nonhisp White','NonHisp Black/Afr Am','NonHisp Native Am/AK Native','NonHisp Native HI/Other Pac Isl','NonHisp Asian','NonHisp more than one race','Hispanic'))
 #Decoding of EDUHIGHCAT column
 data$EDUHIGHCAT<-factor(data$EDUHIGHCAT, 
