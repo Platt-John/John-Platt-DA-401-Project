@@ -491,7 +491,7 @@ groups (e.g. young adults aged 18-25).</p>
 <p>They used a statistical disclosure limitation method called MASSC
 (Micro Agglomeration, optimal probabilistic Substitution, optimal
 probabilistic Subsampling, and optimal sampling weight Calibration) to
-protect the confidentialityn of respondents All directly identifying
+protect the confidentiality of respondents All directly identifying
 information (such as name, phone number, and address) on the file was
 eliminated. Census region, state, and other geographic identifiers were
 also removed, as well as information on whether the interview was
@@ -759,6 +759,9 @@ analysis.</p>
 <pre class="r"><code>#Decoding of IRSEX column
 data$IRSEX&lt;-factor(data$IRSEX, 
                     levels=c(1,2),labels=c(&#39;Male&#39;,&quot;Female&quot;))
+#Decoding of NEWRACE2 column
+data$IRSEX&lt;-factor(data$NEWRACE2, 
+                    levels=c(1,2,3,4,5,6,7),labels=c(&#39;Nonhisp White&#39;,&#39;NonHisp Black/Afr Am&#39;,&#39;NonHisp Native Am/AK Native&#39;,&#39;NonHisp Native HI/Other Pac Isl&#39;,&#39;NonHisp Asian&#39;,&#39;NonHisp more than one race&#39;,&#39;Hispanic&#39;))
 #Decoding of EDUHIGHCAT column
 data$EDUHIGHCAT&lt;-factor(data$EDUHIGHCAT, 
                     levels=c(1,2,3,4,5),
