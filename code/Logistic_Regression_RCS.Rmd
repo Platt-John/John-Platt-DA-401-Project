@@ -1,0 +1,18 @@
+---
+title: "Logistic Regression and RCS Analysis"
+author: "John Platt"
+date: "2025-10-14"
+output: html_document
+---
+
+## Introduction
+Ensuring assumptions are met beforehand and validating model fit, we conduct survey-weighted logistic regression to examine the association between our main illicit substance use predictors (marijuana use, cocaine use, hallucinogen use) and suicidal ideation. An unadjusted model without confounders will be conducted first, and subsequently, a fully adjusted model will be done.
+
+```{r recoding binary outcome variable}
+#Load in cleaned dataset from data folder of repository
+nsduh_2123<-read.csv("C:/Users/John Platt/OneDrive/DA301Project/John-Platt-DA-401-Project/data/NSDUH_2021_2023.csv")
+#Recode suicidal ideation variable to from "No"/"Yes" to 0/1
+nsduh_2123$IRSUICTHNK[nsduh_2123$IRSUICTHNK == "Yes"] <- 1
+nsduh_2123$IRSUICTHNK[nsduh_2123$IRSUICTHNK == "No"] <- 0
+```
+
