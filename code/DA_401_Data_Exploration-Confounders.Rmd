@@ -1,0 +1,163 @@
+---
+title: "DA_401_Data_Exploration-Confounders"
+author: "John Platt"
+date: "2025-10-13"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+## Introduction
+We perform the remainder of the third goal of our data exploration on the 2021-23 NSDUH data, using the following methods: weighted chi-squared tests and weighted 2 sample t-tests. As a reminder, the third goal of our data exploration is to see the association between confounders and suicidal ideation.
+
+## Weighted 2 Sample t-tests
+We see the association between our numerical confounders and suicidal ideation
+
+```{r specifying our survey design, message=FALSE, warning=FALSE}
+#Load in cleaned dataset from data folder of repository
+nsduh_2123<-read.csv("C:/Users/John Platt/OneDrive/DA301Project/John-Platt-DA-401-Project/data/NSDUH_2021_2023.csv")
+#Install survey package
+library(survey) #Library for survey design
+
+options(survey.lonely.psu = "adjust")  #common & documented choice to adjust variance if there are single psus within stratum
+
+#Specify survey design
+des <- svydesign(
+  id      = ~VEREP, #PSU/cluster id
+  strata  = ~VESTR_C, #variance strata
+  weights = ~ANALWT2_C3, #analysis weight
+  data    = nsduh_2123, #2021-2023 NSDUH dataframe
+  nest = TRUE
+)
+```
+
+```{r weighted 2 sample t-test between alcohol use and suicidal thoughts for young adults, include=TRUE}
+#Compare means within CATAGE==2
+tt <- svyttest(IRALCFY ~ IRSUICTHNK, design = subset(des, CATAGE == 2))
+tt
+svyby(
+  ~IRALCFY, #outcome variable
+  ~IRSUICTHNK, #grouping variable (two categories)
+  subset(des, CATAGE == 2), #subset population
+  svymean, #survey weighted mean
+  vartype = c("se", "ci")   #include SEs and 95% CIs
+)
+```
+
+```{r weighted 2 sample t-test between cigarette use and suicidal thoughts for young adults, include=TRUE}
+#Compare means within CATAGE==2
+tt <- svyttest(IRCIGFM ~ IRSUICTHNK, design = subset(des, CATAGE == 2))
+tt
+svyby(
+  ~IRCIGFM, #outcome variable
+  ~IRSUICTHNK, #grouping variable (two categories)
+  subset(des, CATAGE == 2), #subset population
+  svymean, #survey weighted mean
+  vartype = c("se", "ci")   #include SEs and 95% CIs
+)
+```
+
+```{r weighted 2 sample t-test between binge drinking and suicidal thoughts for young adults, include=TRUE}
+#Compare means within CATAGE==2
+tt <- svyttest(IRALCBNG30D ~ IRSUICTHNK, design = subset(des, CATAGE == 2))
+tt
+svyby(
+  ~IRALCBNG30D, #outcome variable
+  ~IRSUICTHNK, #grouping variable (two categories)
+  subset(des, CATAGE == 2), #subset population
+  svymean, #survey weighted mean
+  vartype = c("se", "ci")   #include SEs and 95% CIs
+)
+```
+
+```{r weighted 2 sample t-test between nicotine vaping and suicidal thoughts for young adults, include=TRUE}
+#Compare means within CATAGE==2
+tt <- svyttest(IRNICVAP30N ~ IRSUICTHNK, design = subset(des, CATAGE == 2 & IRNICVAP30N != -9))
+tt
+svyby(
+  ~IRNICVAP30N, #outcome variable
+  ~IRSUICTHNK, #grouping variable (two categories)
+  subset(des, CATAGE == 2 & IRNICVAP30N != -9), #subset population
+  svymean, #survey weighted mean
+  vartype = c("se", "ci")   #include SEs and 95% CIs
+)
+```
+
+## Weighted Chi-Squared Tests
+We see the association between our categorical confounders and suicidal ideation
+
+```{r survey-weighted chi-squared test between gender and suicidal ideation}
+# Test association between two categorical vars
+svychisq(~ IRSEX + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic = "adjWald")
+# Produce contingency table
+prop.table(svytable(~ IRSEX + IRSUICTHNK, subset(des,CATAGE == 2)), margin=2) # col % (weighted)
+```
+
+```{r survey-weighted chi-squared test between race and suicidal ideation}
+# Test association between two categorical vars
+svychisq(~ NEWRACE2 + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic = "adjWald")
+# Produce contingency table
+prop.table(svytable(~ NEWRACE2 + IRSUICTHNK, subset(des,CATAGE == 2)), margin=2) # col % (weighted)
+```
+
+```{r survey-weighted chi-squared test between education and suicidal ideation}
+# Test association between two categorical vars
+svychisq(~ EDUHIGHCAT + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic = "adjWald")
+# Produce contingency table
+prop.table(svytable(~ EDUHIGHCAT + IRSUICTHNK, subset(des,CATAGE == 2)), margin=2) # col % (weighted)
+```
+
+```{r survey-weighted chi-squared test between IRWRKSTAT18 and suicidal ideation}
+# Test association between two categorical vars
+svychisq(~ IRWRKSTAT18 + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic = "adjWald")
+# Produce contingency table
+prop.table(svytable(~ IRWRKSTAT18 + IRSUICTHNK, subset(des,CATAGE == 2)), margin=2) # col % (weighted)
+```
+```{r survey-weighted chi-squared test between IRPRVHLT and suicidal ideation}
+# Test association between two categorical vars
+svychisq(~ IRPRVHLT + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic = "adjWald")
+# Produce contingency table
+prop.table(svytable(~ IRPRVHLT + IRSUICTHNK, subset(des,CATAGE == 2)), margin=2) # col % (weighted)
+```
+
+```{r survey-weighted chi-squared test between IRHHSIZ2 and suicidal ideation}
+# Test association between two categorical vars
+svychisq(~ IRHHSIZ2 + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic = "adjWald")
+# Produce contingency table
+prop.table(svytable(~ IRHHSIZ2 + IRSUICTHNK, subset(des,CATAGE == 2)), margin=2) # col % (weighted)
+```
+
+```{r survey-weighted chi-squared test between INCOME and suicidal ideation}
+# Test association between two categorical vars
+svychisq(~ INCOME + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic = "adjWald")
+# Produce contingency table
+prop.table(svytable(~ INCOME + IRSUICTHNK, subset(des,CATAGE == 2)), margin=2) # col % (weighted)
+```
+
+```{r survey-weighted chi-squared test between IRDSTNRV12 and suicidal ideation}
+# Test association between two categorical vars
+svychisq(~ IRDSTNRV12 + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic = "adjWald")
+# Produce contingency table
+prop.table(svytable(~ IRDSTNRV12 + IRSUICTHNK, subset(des,CATAGE == 2)), margin=2) # col % (weighted)
+```
+
+```{r survey-weighted chi-squared test between IRDSTEFF12 and suicidal ideation}
+# Test association between two categorical vars
+svychisq(~ IRDSTEFF12 + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic = "adjWald")
+# Produce contingency table
+prop.table(svytable(~ IRDSTEFF12 + IRSUICTHNK, subset(des,CATAGE == 2)), margin=2) # col % (weighted)
+```
+
+```{r survey-weighted chi-squared test between IRIMPCONCN and suicidal ideation}
+# Test association between two categorical vars
+svychisq(~ IRIMPCONCN + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic = "adjWald")
+# Produce contingency table
+prop.table(svytable(~ IRIMPCONCN + IRSUICTHNK, subset(des,CATAGE == 2)), margin=2) # col % (weighted)
+```
+
+```{r survey-weighted chi-squared test between SUTINPPY and suicidal ideation}
+# Test association between two categorical vars
+svychisq(~ SUTINPPY + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic = "adjWald")
+# Produce contingency table
+prop.table(svytable(~ SUTINPPY + IRSUICTHNK, subset(des,CATAGE == 2)), margin=2) # col % (weighted)
+```
