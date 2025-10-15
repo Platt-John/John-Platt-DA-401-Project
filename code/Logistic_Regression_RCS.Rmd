@@ -2,17 +2,88 @@
 title: "Logistic Regression and RCS Analysis"
 author: "John Platt"
 date: "2025-10-14"
-output: html_document
+output: 
+  html_document:
+    code_folding: hide
 ---
 
 ## Introduction
 Ensuring assumptions are met beforehand and validating model fit, we conduct survey-weighted logistic regression to examine the association between our main illicit substance use predictors (marijuana use, cocaine use, hallucinogen use) and suicidal ideation. An unadjusted model without confounders will be conducted first, and subsequently, a fully adjusted model will be done.
 
-```{r recoding binary outcome variable}
-#Load in cleaned dataset from data folder of repository
-nsduh_2123<-read.csv("C:/Users/John Platt/OneDrive/DA301Project/John-Platt-DA-401-Project/data/NSDUH_2021_2023.csv")
-#Recode suicidal ideation variable to from "No"/"Yes" to 0/1
-nsduh_2123$IRSUICTHNK[nsduh_2123$IRSUICTHNK == "Yes"] <- 1
-nsduh_2123$IRSUICTHNK[nsduh_2123$IRSUICTHNK == "No"] <- 0
+## Meeting Logistic Regression Assumptions
+
+First, we get our dataset ready and check assumptions before performing logistic regression.
+
+```{r loading in and modifying original dataset, include=TRUE, message=FALSE, warning=FALSE}
+#File -> New Project -> Set existing GitHub Repository as working directory with data2 as a subfolder outside the repository and the NSDUH_2023.Rdata file in the subfolder
+#Load in the data
+load("C:/Users/John Platt/OneDrive/data2/NSDUH_2021_2023.Rdata")
+#Required packages:
+#dplyr
+library(dplyr) #data wrangling and manipulation
+#Select a subset of the 2021-2023 NSDUH data that has the 27 necessary columns
+data<-data %>% select(ANALWT2_C3,YEAR,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY,AMISUD5ANYO)
+data
+# Replace all 91s with 0 in the entire data frame
+data[data == 91] <- 0
+# Replace all 93s with 0 in the entire data frame
+data[data == 93] <- 0
+# Replace all 991s with 0 in the entire data frame
+data[data == 991] <- 0
+# Replace all 993s with 0 in the entire data frame
+data[data == 993] <- 0
+```
+
+Subsequently, we perform dummy variable coding (for nominal categorical variables) and convert our illicit substance use predictors into categorical variables.
+
+```{r dummy variables and illicit substance use conversion}
+#Required packages:
+#fastDummies
+library(fastDummies) #Dummy variable creation
+#Convert nominal variables into dummy variables and drop reference dummy to avoid "dummy variable trap"
+data <- dummy_cols(data, select_columns = c("NEWRACE2","IRWRKSTAT18"), remove_first_dummy = TRUE, remove_selected_columns = TRUE)
+head(data)
+#Convert illicit substance use variables into categories
+data$IRMJFY2 <- cut(data$IRMJFY,
+                    breaks = 4,   # number of categories
+                    labels = c("0-90", "90-180", "180-270", "270-360"),
+                    include.lowest = TRUE)
+data$IRCOCFY2 <- cut(data$IRCOCFY,
+                    breaks = 4,   # number of categories
+                    labels = c("0-90", "90-180", "180-270", "270-360"),
+                    include.lowest = TRUE)
+data$IRHALLUCYFQ2 <- cut(data$IRHALLUCYFQ,
+                    breaks = 4,   # number of categories
+                    labels = c("0-90", "90-180", "180-270", "270-360"),
+                    include.lowest = TRUE)
+#Convert categories to numerical codes
+data$IRMJFY2 <- ifelse(data$IRMJFY2=="0-90",1,ifelse(data$IRMJFY2=="90-180",2,ifelse(data$IRMJFY2=="180-270",3,ifelse(data$IRMJFY=="270-360",4,NA))))
+data$IRCOCFY2 <- ifelse(data$IRCOCFY2=="0-90",1,ifelse(data$IRCOCFY2=="90-180",2,ifelse(data$IRCOCFY2=="180-270",3,ifelse(data$IRCOCFY2=="270-360",4,NA))))
+data$IRHALLUCYFQ2 <- ifelse(data$IRHALLUCYFQ2=="0-90",1,ifelse(data$IRHALLUCYFQ2=="90-180",2,ifelse(data$IRHALLUCYFQ2=="180-270",3,ifelse(data$IRHALLUCYFQ2=="270-360",4,NA))))
+```
+
+Now we specify our survey design and check strata, PSUs, and effective sample size for our subpopulation.
+
+```{r specify survey design and check sample size as well as strata and PSUs}
+#Install survey package
+library(survey) #Library for survey design
+options(survey.lonely.psu = "adjust")  #common & documented choice to adjust variance if there are single psus within stratum
+#Specify survey design
+des <- svydesign(
+  id      = ~VEREP, #PSU/cluster id
+  strata  = ~VESTR_C, #variance strata
+  weights = ~ANALWT2_C3, #analysis weight
+  data    = data, #2021-2023 NSDUH dataframe
+  nest = TRUE
+)
+#Check strata, PSUs, and effective sample size
+young_adults <- subset(des, CATAGE == 2)  # CATAGE==2 for 18–25
+# Number of unique strata and PSUs in the subpopulation
+length(unique(young_adults$variables$VESTR_C))
+length(unique(young_adults$variables$VEREP))
+#Compute effective sample size
+w <- weights(young_adults)
+ess <- (sum(w)^2) / sum(w^2)
+ess
 ```
 

@@ -71,11 +71,11 @@ We distill the 2021-2023 NSDUH data down to the necessary variables (27):
 3. Covariates
 4. Survey Design variables (ANALWT2_C,VESTR_C,VEREP)
 5. Filter variables (CATAGE,NEWRACE2)
-```{r 2023 NSDUH variable selection, message=FALSE, warning=FALSE, include=TRUE}
+```{r 2021-2023 NSDUH variable selection, message=FALSE, warning=FALSE, include=TRUE}
 #Required packages:
 #dplyr
 library(dplyr) #data wrangling and manipulation
-#Select a subset of the 2023 NSDUH data that has the 25 necessary columns
+#Select a subset of the 2021-2023 NSDUH data that has the 27 necessary columns
 data<-data %>% select(ANALWT2_C3,YEAR,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY,AMISUD5ANYO)
 data
 ```
