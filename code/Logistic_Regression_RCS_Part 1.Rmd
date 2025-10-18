@@ -1,5 +1,5 @@
 ---
-title: "Logistic Regression and RCS Analysis"
+title: "Logistic Regression and RCS Analysis Part 1"
 author: "John Platt"
 date: "2025-10-14"
 output: 
@@ -8,6 +8,7 @@ output:
 ---
 
 ## Introduction
+
 Ensuring assumptions are met beforehand and validating model fit, we conduct survey-weighted logistic regression to examine the association between our main illicit substance use predictors (marijuana use, cocaine use, hallucinogen use) and suicidal ideation. An unadjusted model without confounders will be conducted first, and subsequently, a fully adjusted model will be done.
 
 ## Meeting Logistic Regression Assumptions
@@ -33,8 +34,6 @@ data[data == 991] <- 0
 # Replace all 993s with 0 in the entire data frame
 data[data == 993] <- 0
 ```
-
-Subsequently, we perform dummy variable coding (for nominal categorical variables) and convert our illicit substance use predictors into categorical variables.
 
 ```{r dummy variables and illicit substance use conversion}
 #Required packages:
@@ -62,8 +61,6 @@ data$IRCOCFY2 <- ifelse(data$IRCOCFY2=="0-90",1,ifelse(data$IRCOCFY2=="90-180",2
 data$IRHALLUCYFQ2 <- ifelse(data$IRHALLUCYFQ2=="0-90",1,ifelse(data$IRHALLUCYFQ2=="90-180",2,ifelse(data$IRHALLUCYFQ2=="180-270",3,ifelse(data$IRHALLUCYFQ2=="270-360",4,NA))))
 ```
 
-Now we specify our survey design and check strata, PSUs, and effective sample size for our subpopulation.
-
 ```{r specify survey design and check sample size as well as strata and PSUs}
 #Install survey package
 library(survey) #Library for survey design
@@ -88,7 +85,6 @@ ess
 ```
 
 ```{r Check for multicollinearity}
-#8
 vars <- c("IRSEX","EDUHIGHCAT","IRPRVHLT","IRHHSIZ2","INCOME","IRALCFY","IRCIGFM","IRNICVAP30N","IRALCBNG30D","SUTINPPY","IRDSTNRV12","IRIMPCONCN","IRMJFY2","NEWRACE2_2","NEWRACE2_3","NEWRACE2_4","NEWRACE2_5","NEWRACE2_6",
 "NEWRACE2_7","IRWRKSTAT18_2","IRWRKSTAT18_3","IRWRKSTAT18_4","IRWRKSTAT18_99")  #Variables to include in the correlation matrix
 # Load the survey package for complex survey analysis (weights, PSUs, strata)
@@ -181,6 +177,7 @@ cor_matrix <- survey_cor_matrix(des_dom, vars)
 # 5) Display the correlation matrix, rounding all values to 3 decimal places for readability
 round(cor_matrix, 3)
 ```
+
 ```{r calculate VIFs}
 # Load the 'car' package to access the vif() function for multicollinearity checks
 library(car)
@@ -254,6 +251,9 @@ vifs    <- car::vif(fit_wls)
 # Sort VIFs from highest to lowest (helps you quickly spot the worst offenders)
 sort(vifs, decreasing = TRUE)
 ```
+
+# Logistic Regression
+
 ```{r unadjusted pseudo maximum likelihood logistic regression}
 # Example: one predictor (numeric or factor)
 fit <- svyglm(IRSUICTHNK ~ IRMJFY2, design = des_dom, family = quasibinomial())
@@ -277,6 +277,7 @@ est <- data.frame(
 # Drop the intercept row when reporting
 subset(est, term != "(Intercept)")
 ```
+
 ```{r plot residuals vs fitted values for unadjusted PML model}
 # Get fitted probabilities
 fitted_vals <- fitted(fit)
@@ -360,7 +361,8 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-Now we add interactions into our logistic regression model (one at a time), deciding which interactions to add based on existing research. Existing research has shown the relationship between substance use and mental health differs by race, work status, alcohol use, cigarette use,... Since we have less than 30 variables in our model including one main predictor, we will go ahead and test every possible interaction one at a time.
+Now we add interactions into our logistic regression model (one at a time). Since we have less than 30 variables in our model including one main predictor, we will go ahead and test every possible interaction one at a time.
+
 ```{r PML adjusted logistic regression with interactions}
 #Required packages: survey
 library(survey)
@@ -473,11 +475,10 @@ des <- svydesign(
 des_dom <- subset(des, CATAGE == 2)
 
 # --------------------- FIT BASELINE MODEL -------------------
-form <- IRSUICTHNK ~ IRMJFY2 + IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + INCOME +
-  IRALCFY + IRCIGFM + IRNICVAP30N + IRALCBNG30D + SUTINPPY +
-  IRDSTNRV12 + IRIMPCONCN +
-  NEWRACE2_2 + NEWRACE2_3 + NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
-  IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4
+form <- IRSUICTHNK ~ IRSEX + EDUHIGHCAT + IRPRVHLT +  IRHHSIZ2 + INCOME + IRALCFY + IRCIGFM + IRNICVAP30N + IRALCBNG30D + IRMJFY2 + SUTINPPY +
+               IRDSTNRV12 + IRIMPCONCN + 
+               NEWRACE2_2 + IRMJFY2 * NEWRACE2_3 + IRMJFY2 * NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
+               IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4
 
 fit <- svyglm(form, design = des_dom, family = quasibinomial())
 
@@ -504,34 +505,56 @@ if (length(flag_idx) > 0) {
 
   des_trim <- subset(des_dom, !(row_id %in% flagged_ids))
   fit_trim <- svyglm(form, design = des_trim, family = quasibinomial())
-
-  # ------------------ COMPARE FULL vs TRIMMED ----------------
-  or_full <- exp(coef(fit))
-  or_trim <- exp(coef(fit_trim))
-  delta   <- coef(fit_trim) - coef(fit)
-
-  comp <- data.frame(
-    term   = names(or_full),
-    OR_full = or_full,
-    OR_trim = or_trim,
-    delta_logOR = delta,
-    row.names = NULL
-  )
-
-  # Show the 10 terms that change the most in log-OR
-  comp <- comp[order(-abs(comp$delta_logOR)), ]
-  print(head(comp, 10))
-
-} else {
-  message("No cases exceeded the current outlier thresholds; no refit performed.")
 }
+# ------------------ COMPARE FULL vs TRIMMED (robust) ----------------
+or_full <- exp(coef(fit))
+or_trim <- exp(coef(fit_trim))
+
+# Turn into data.frames keyed by term
+df_full <- data.frame(term = names(or_full),
+                      logOR_full = coef(fit),
+                      OR_full = unname(or_full),
+                      row.names = NULL)
+
+df_trim <- data.frame(term = names(or_trim),
+                      logOR_trim = coef(fit_trim),
+                      OR_trim = unname(or_trim),
+                      row.names = NULL)
+
+# Align by term name (keep all; you can filter later)
+comp <- merge(df_full, df_trim, by = "term", all = TRUE)
+
+# Compute delta only where both models have the term
+comp$delta_logOR <- with(comp, ifelse(is.na(logOR_full) | is.na(logOR_trim),
+                                      NA_real_, logOR_trim - logOR_full))
+
+# Show which terms disappeared/appeared
+dropped_terms <- comp$term[is.na(comp$logOR_trim) & !is.na(comp$logOR_full)]
+added_terms   <- comp$term[!is.na(comp$logOR_trim) & is.na(comp$logOR_full)]
+
+if (length(dropped_terms))
+  message("Terms present in full model but not trimmed: ",
+          paste(dropped_terms, collapse = ", "))
+
+if (length(added_terms))
+  message("Terms present in trimmed model but not full: ",
+          paste(added_terms, collapse = ", "))
+
+# Sort by magnitude of change among terms present in both
+comp_common <- subset(comp, !is.na(delta_logOR))
+comp_common <- comp_common[order(-abs(comp_common$delta_logOR)), ]
+
+# Top 10 most changed terms
+print(head(comp_common[, c("term","OR_full","OR_trim","delta_logOR")], 10))
+
 
 # ---------------- OPTIONAL: SUMMARIES -----------------------
 summary(fit)
 if (exists("fit_trim")) summary(fit_trim)
 
 ```
-```{r non-linear test}
+
+```{r non-linear test, warning=FALSE}
 #Required libraries: splines & survey
 library(survey)
 library(splines)
@@ -542,7 +565,7 @@ fit_linear <- svyglm(
     IRDSTNRV12 + IRIMPCONCN +
     NEWRACE2_2 + IRMJFY2:NEWRACE2_3 + IRMJFY2:NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
     IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
-  design = des_dom,
+  design = des_trim,
   family = quasibinomial()
 )
 #Fit non-linear model
@@ -552,7 +575,7 @@ fit_rcs <- svyglm(
     IRDSTNRV12 + IRIMPCONCN +
     NEWRACE2_2 + NEWRACE2_3 + NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
     IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
-  design = des_dom,
+  design = des_trim,
   family = quasibinomial()
 )
 #Test the null hypothesis: nonlinear spline components = 0
