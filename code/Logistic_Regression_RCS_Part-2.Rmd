@@ -400,169 +400,75 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-```{r check influence of outliers}
-# -------------------------- SETUP --------------------------
+```{r plot residuals vs fitted values for adjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r non-linear test, warning=FALSE, message=FALSE}
+#Required libraries: rms & survey
 library(survey)
-options(survey.lonely.psu = "adjust")   # safer variance default for small/empty PSUs
-
-df <- data                     
-stopifnot(is.data.frame(df))             # make sure it's a real data frame
-
-# Add a unique row ID so we can identify/remove specific cases later
-df$row_id <- seq_len(nrow(df))
-
-# Variables needed (outcome, predictors, domain, design)
-needed <- c(
-  # outcome
+library(rms)
+#Pick the variables we need: outcome, predictors, domain var, and design vars
+vars <- c(
+  #Outcome
   "IRSUICTHNK",
-  # predictors (your adjusted model)
-  "IRMJFY_std","IRCOCFY_std","IRHALLUCYFQ_std","IRSEX","EDUHIGHCAT","IRPRVHLT","IRHHSIZ2","INCOME",
-  "IRALCFY","IRCIGFM","IRNICVAP30N","IRALCBNG30D","SUTINPPY",
-  "IRDSTNRV12","IRIMPCONCN",
+  #Predictors
+  "IRSEX","EDUHIGHCAT","IRPRVHLT","IRHHSIZ2","INCOME","IRALCFY","IRCIGFM",
+  "IRNICVAP30N","IRALCBNG30D","SUTINPPY","IRDSTNRV12","IRIMPCONCN","IRMJFY_std","IRCOCFY_std","IRHALLUCYFQ_std",
+  #Dummy columns (omit reference category dummy!)
   "NEWRACE2_2","NEWRACE2_3","NEWRACE2_4","NEWRACE2_5","NEWRACE2_6","NEWRACE2_7",
   "IRWRKSTAT18_2","IRWRKSTAT18_3","IRWRKSTAT18_4",
-  # domain and design variables
-  "CATAGE","VEREP","VESTR_C","ANALWT2_C3","row_id"
+  #Domain variable
+  "CATAGE",
+  #Design variables
+  "VEREP","VESTR_C","ANALWT2_C3"
 )
-
-# Quick check that required columns exist
-missing <- setdiff(needed, names(df))
-if (length(missing)) stop("Missing variables in data: ", paste(missing, collapse = ", "))
-
-# ----------------------- SURVEY DESIGN ----------------------
+#Create a data.frame with just the selected columns
+df <- data[, vars]
+#Build the survey design
 des <- svydesign(
-  ids     = ~VEREP,         # PSU / cluster
-  strata  = ~VESTR_C,       # strata
-  weights = ~ANALWT2_C3,    # analysis weight (use the correct combined-year weight)
+  ids     = ~VEREP,        #PSU / cluster id
+  strata  = ~VESTR_C,      #Variance strata
+  weights = ~ANALWT2_C3,   #Analysis weight (confirm the exact name)
   data    = df,
   nest    = TRUE
 )
-
-# Domain restriction (young adults, per your prior work)
+#Domain (subpopulation) restriction
 des_dom <- subset(des, CATAGE == 2)
-
-# --------------------- FIT BASELINE MODEL -------------------
-fit <- svyglm(IRSUICTHNK ~ IRCOCFY_std + IRHALLUCYFQ_std + IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + INCOME +
-               IRALCFY + IRCIGFM + IRNICVAP30N + IRALCBNG30D + SUTINPPY +
-               IRDSTNRV12 + IRIMPCONCN +
-               NEWRACE2_2 + IRMJFY_std * NEWRACE2_3 + IRMJFY_std * NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
-               IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4, design = des_dom, family = quasibinomial())
-
-# --------------------- DIAGNOSTICS: OUTLIERS ----------------
-# Residuals, leverage, and Cook's distance
-res_dev <- residuals(fit, type = "deviance")
-lev     <- hatvalues(fit)
-cooks   <- cooks.distance(fit)
-
-# Heuristic thresholds
-n <- nrow(des_dom$variables)             # sample size in domain
-p <- length(coef(fit))                   # # of parameters
-thr_resid <- 3                           # |deviance residual| > 3
-thr_lev   <- 2 * p / n                   # leverage > 2p/n
-thr_cook  <- 4 / n                       # Cook's D > 4/n
-
-flag_idx <- which(abs(res_dev) > thr_resid | lev > thr_lev | cooks > thr_cook)
-cat("Flagged observations:", length(flag_idx), "\n")
-
-# ----------------- REFIT WITHOUT FLAGGED CASES --------------
-if (length(flag_idx) > 0) {
-  # Map flagged indices to row IDs inside the design
-  flagged_ids <- des_dom$variables$row_id[flag_idx]
-
-  des_trim <- subset(des_dom, !(row_id %in% flagged_ids))
-  fit_trim <- svyglm(IRSUICTHNK ~ IRCOCFY_std + IRHALLUCYFQ_std + IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + INCOME +
-               IRALCFY + IRCIGFM + IRNICVAP30N + IRALCBNG30D + SUTINPPY +
-               IRDSTNRV12 + IRIMPCONCN +
-               NEWRACE2_2 + IRMJFY_std * NEWRACE2_3 + IRMJFY_std * NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
-               IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4, design = des_trim, family = quasibinomial())
-}
-# ------------------ COMPARE FULL vs TRIMMED (robust) ----------------
-or_full <- exp(coef(fit))
-or_trim <- exp(coef(fit_trim))
-
-# Turn into data.frames keyed by term
-df_full <- data.frame(term = names(or_full),
-                      logOR_full = coef(fit),
-                      OR_full = unname(or_full),
-                      row.names = NULL)
-
-df_trim <- data.frame(term = names(or_trim),
-                      logOR_trim = coef(fit_trim),
-                      OR_trim = unname(or_trim),
-                      row.names = NULL)
-
-# Align by term name (keep all; you can filter later)
-comp <- merge(df_full, df_trim, by = "term", all = TRUE)
-
-# Compute delta only where both models have the term
-comp$delta_logOR <- with(comp, ifelse(is.na(logOR_full) | is.na(logOR_trim),
-                                      NA_real_, logOR_trim - logOR_full))
-
-# Show which terms disappeared/appeared
-dropped_terms <- comp$term[is.na(comp$logOR_trim) & !is.na(comp$logOR_full)]
-added_terms   <- comp$term[!is.na(comp$logOR_trim) & is.na(comp$logOR_full)]
-
-if (length(dropped_terms))
-  message("Terms present in full model but not trimmed: ",
-          paste(dropped_terms, collapse = ", "))
-
-if (length(added_terms))
-  message("Terms present in trimmed model but not full: ",
-          paste(added_terms, collapse = ", "))
-
-# Sort by magnitude of change among terms present in both
-comp_common <- subset(comp, !is.na(delta_logOR))
-comp_common <- comp_common[order(-abs(comp_common$delta_logOR)), ]
-
-# Top 10 most changed terms
-print(head(comp_common[, c("term","OR_full","OR_trim")], 10))
-
-
-# ---------------- OPTIONAL: SUMMARIES -----------------------
-summary(fit)
-if (exists("fit_trim")) summary(fit_trim)
-
-```
-
-```{r non-linear test, warning=FALSE}
-#Required libraries: splines & survey
-library(survey)
-library(splines)
 #Fit linear model
 fit_linear <- svyglm(
-  IRSUICTHNK ~ IRCOCFY_std + IRHALLUCYFQ_std + IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + INCOME +
+  IRSUICTHNK ~ IRMJFY_std + IRCOCFY_std + IRHALLUCYFQ_std + IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + INCOME +
                IRALCFY + IRCIGFM + IRNICVAP30N + IRALCBNG30D + SUTINPPY +
                IRDSTNRV12 + IRIMPCONCN +
-               NEWRACE2_2 + IRMJFY_std * NEWRACE2_3 + IRMJFY_std * NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
+               NEWRACE2_2 + NEWRACE2_3 + NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
                IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
-  design = des_trim,
+  design = des_dom,
   family = quasibinomial()
 )
 #Fit non-linear model
 fit_rcs <- svyglm(
-  IRSUICTHNK ~ ns(IRMJFY_std + IRCOCFY_std + IRHALLUCYFQ_std, df=4) + IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + INCOME +
+  IRSUICTHNK ~ rcs(IRMJFY_std) +
+    rcs(IRCOCFY_std) +
+    rcs(IRHALLUCYFQ_std) + IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + INCOME +
     IRALCFY + IRCIGFM + IRNICVAP30N + IRALCBNG30D + SUTINPPY +
     IRDSTNRV12 + IRIMPCONCN +
     NEWRACE2_2 + NEWRACE2_3 + NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
     IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
-  design = des_trim,
+  design = des_dom,
   family = quasibinomial()
 )
 #Test the null hypothesis: nonlinear spline components = 0
-regTermTest(fit_rcs, ~ ns(IRMJFY_std + IRCOCFY_std + IRHALLUCYFQ_std, df=4))
+regTermTest(fit_rcs, ~ rcs(IRMJFY_std))
+regTermTest(fit_rcs, ~ rcs(IRCOCFY_std))
+regTermTest(fit_rcs, ~ rcs(IRHALLUCYFQ_std))
 ```
 
-```{r plot residuals vs fitted values for adjusted PML model}
-# Get fitted probabilities
-fitted_vals <- fitted(fit_rcs)
-# Get Pearson residuals (common for logistic models)
-residuals_vals <- residuals(fit_rcs, type = "pearson")
-#Plot residuals vs fitted values
-plot(fitted_vals, residuals_vals,
-     xlab = "Fitted Values (Predicted Probabilities)",
-     ylab = "Pearson Residuals",
-     main = "Residuals vs Fitted Values",
-     pch = 19, col = "steelblue")
-
-abline(h = 0, lty = 2, col = "red")  # horizontal line at 0 residual
+```{r plot residuals vs fitted values for RCS adjusted PML model}
+res_dev <- residuals(fit_rcs, type = "deviance")
+plot(fitted(fit_rcs), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
 ```
