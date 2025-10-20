@@ -88,8 +88,6 @@ ess
 #Variables to include in the correlation matrix
 vars <- c("IRSEX","EDUHIGHCAT","IRPRVHLT","IRHHSIZ2","INCOME","IRALCFY","IRCIGFM","IRNICVAP30N","IRALCBNG30D","SUTINPPY","IRDSTNRV12","IRIMPCONCN","IRMJFY2","NEWRACE2_2","NEWRACE2_3","NEWRACE2_4","NEWRACE2_5","NEWRACE2_6",
 "NEWRACE2_7","IRWRKSTAT18_2","IRWRKSTAT18_3","IRWRKSTAT18_4")
-#Restrict survey design to subpopulation of interest: young adults
-des_dom <- subset(des, CATAGE == 2)
 #Define a function to compute a survey-weighted correlation matrix
 survey_cor_matrix <- function(design, vars) {
   p <- length(vars) #Count how many variables we're including
@@ -137,7 +135,7 @@ survey_cor_matrix <- function(design, vars) {
 #Run the function to calculate the survey-weighted correlation matrix
 #    - des_dom is your survey design restricted to CATAGE == 2
 #    - vars is the list of usable variables
-cor_matrix <- survey_cor_matrix(des_dom, vars)
+cor_matrix <- survey_cor_matrix(young_adults, vars)
 
 #Display the correlation matrix, rounding all values to 3 decimal places for readability
 round(cor_matrix, 3)
@@ -146,12 +144,10 @@ round(cor_matrix, 3)
 ```{r calculate VIFs}
 #Load the 'car' package to access the vif() function for multicollinearity checks
 library(car)
-#Create a domain-restricted survey design (keeps weights/PSUs/strata intact, but restricts to CATAGE == 2)
-des_dom <- subset(des, CATAGE == 2)
 #Extract the domain-restricted data frame (all variables available in the design)
-d  <- des_dom$variables
+d  <- young_adults$variables
 #Extract the final analysis weights as a numeric vector aligned with 'd'
-w  <- as.numeric(weights(des_dom))
+w  <- as.numeric(weights(young_adults))
 # Define the predictor set you plan to screen for multicollinearity
 preds <- c("IRSEX","EDUHIGHCAT","IRPRVHLT","IRHHSIZ2","INCOME","IRALCFY","IRCIGFM",
            "IRNICVAP30N","IRALCBNG30D","SUTINPPY","IRDSTNRV12","IRIMPCONCN",
@@ -203,7 +199,7 @@ Now we code our unadjusted and adjusted logistic regression models.
 
 ```{r unadjusted pseudo maximum likelihood logistic regression}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
-fit <- svyglm(IRSUICTHNK ~ IRMJFY2, design = des_dom, family = quasibinomial())
+fit <- svyglm(IRSUICTHNK ~ IRMJFY2, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
 co <- coef(fit) #Beta coefficients
 vc <- vcov(fit) #Variance-covariance matrix
@@ -224,48 +220,38 @@ subset(est, term != "(Intercept)")
 ```
 
 ```{r plot residuals vs fitted values for unadjusted PML model}
-#Get fitted probabilities
-fitted_vals <- fitted(fit)
-#Get Pearson residuals (common for logistic models)
-residuals_vals <- residuals(fit, type = "pearson")
-#Plot residuals vs fitted values
-plot(fitted_vals, residuals_vals,
-     xlab = "Fitted Values (Predicted Probabilities)",
-     ylab = "Pearson Residuals",
-     main = "Residuals vs Fitted Values",
-     pch = 19, col = "steelblue")
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
 
-abline(h = 0, lty = 2, col = "red")  # horizontal line at 0 residual
+```{r non-linear test, warning=FALSE, message=FALSE}
+#Required libraries: rms 
+library(rms)
+#Fit linear model
+fit_linear <- svyglm(
+  IRSUICTHNK ~ IRMJFY,
+  design = young_adults,
+  family = quasibinomial()
+)
+#Fit non-linear model
+fit_rcs <- svyglm(
+  IRSUICTHNK ~ rcs(IRMJFY),
+  design = young_adults,
+  family = quasibinomial()
+)
+#Test the null hypothesis: nonlinear spline components = 0
+regTermTest(fit_rcs, ~ rcs(IRMJFY))
+```
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit_rcs, type = "deviance")
+plot(fitted(fit_rcs), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
 ```
 
 ```{r adjusted pseudo maximum likelihood logistic regression}
-#Pick the variables we need: outcome, predictors, domain var, and design vars
-vars <- c(
-  #Outcome
-  "IRSUICTHNK",
-  #Predictors
-  "IRSEX","EDUHIGHCAT","IRPRVHLT","IRHHSIZ2","INCOME","IRALCFY","IRCIGFM",
-  "IRNICVAP30N","IRALCBNG30D","SUTINPPY","IRDSTNRV12","IRIMPCONCN","IRMJFY2",
-  #Dummy columns (omit reference category dummy!)
-  "NEWRACE2_2","NEWRACE2_3","NEWRACE2_4","NEWRACE2_5","NEWRACE2_6","NEWRACE2_7",
-  "IRWRKSTAT18_2","IRWRKSTAT18_3","IRWRKSTAT18_4",
-  #Domain variable
-  "CATAGE",
-  #Design variables
-  "VEREP","VESTR_C","ANALWT2_C3"
-)
-#Create a data.frame with just the selected columns
-df <- data[, vars]
-#Build the survey design
-des <- svydesign(
-  ids     = ~VEREP,        #PSU / cluster id
-  strata  = ~VESTR_C,      #Variance strata
-  weights = ~ANALWT2_C3,   #Analysis weight (confirm the exact name)
-  data    = df,
-  nest    = TRUE
-)
-#Domain (subpopulation) restriction
-des_dom <- subset(des, CATAGE == 2)
 #Fit the adjusted PML logistic regression (quasibinomial for robust SEs)
 fit <- svyglm(
   IRSUICTHNK ~ IRMJFY2 + IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + INCOME +
@@ -273,7 +259,7 @@ fit <- svyglm(
                IRDSTNRV12 + IRIMPCONCN +
                NEWRACE2_2 + NEWRACE2_3 + NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
                IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
-  design = des_dom,
+  design = young_adults,
   family = quasibinomial()
 )
 #Coefficients → ORs with 95% CIs
@@ -298,40 +284,13 @@ subset(est, term != "(Intercept)")
 Now we add interactions into our adjusted logistic regression model (one at a time). Since we have less than 30 variables in our model including one main predictor, we will go ahead and test every possible interaction one at a time.
 
 ```{r PML adjusted logistic regression with interactions}
-#Pick the variables we need: outcome, predictors, domain var, and design vars
-vars <- c(
-  #Outcome
-  "IRSUICTHNK",
-  #Predictors
-  "IRSEX","EDUHIGHCAT","IRPRVHLT","IRHHSIZ2","INCOME","IRALCFY","IRCIGFM",
-  "IRNICVAP30N","IRALCBNG30D","SUTINPPY","IRDSTNRV12","IRIMPCONCN","IRMJFY2","IRCOCFY2","IRHALLUCYFQ2",
-  #Dummy columns (omit reference category dummy!)
-  "NEWRACE2_2","NEWRACE2_3","NEWRACE2_4","NEWRACE2_5","NEWRACE2_6","NEWRACE2_7",
-  "IRWRKSTAT18_2","IRWRKSTAT18_3","IRWRKSTAT18_4",
-  #Domain variable
-  "CATAGE",
-  #Design variables
-  "VEREP","VESTR_C","ANALWT2_C3"
-)
-#Create dataframe with desired columns
-df <- data[, vars]
-#Build the survey design
-des <- svydesign(
-  ids     = ~VEREP,        #PSU / cluster id
-  strata  = ~VESTR_C,      #Variance strata
-  weights = ~ANALWT2_C3,   #Analysis weight (confirm the exact name)
-  data    = df,
-  nest    = TRUE
-)
-#Domain (subpopulation) restriction
-des_dom <- subset(des, CATAGE == 2)
-#Fit the adjusted PML logistic regression (quasibinomial for robust SEs)
+#Fit the adjusted PML logistic regression (quasibinomial for robust SEs) with interactions
 fit <- svyglm(
   IRSUICTHNK ~ IRSEX + EDUHIGHCAT + IRPRVHLT +  IRHHSIZ2 + INCOME + IRALCFY + IRCIGFM + IRNICVAP30N + IRALCBNG30D + IRMJFY2 + SUTINPPY +
                IRDSTNRV12 + IRIMPCONCN + 
                NEWRACE2_2 + IRMJFY2 * NEWRACE2_3 + IRMJFY2 * NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
                IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
-  design = des_dom,
+  design = young_adults,
   family = quasibinomial()
 )
 #Coefficients → ORs with 95% CIs
@@ -363,36 +322,8 @@ abline(h=0, lty=2, col="red")
 ```
 
 ```{r non-linear test, warning=FALSE, message=FALSE}
-#Required libraries: rms & survey
-library(survey)
+#Required libraries: rms 
 library(rms)
-#Pick the variables we need: outcome, predictors, domain var, and design vars
-vars <- c(
-  #Outcome
-  "IRSUICTHNK",
-  #Predictors
-  "IRSEX","EDUHIGHCAT","IRPRVHLT","IRHHSIZ2","INCOME","IRALCFY","IRCIGFM",
-  "IRNICVAP30N","IRALCBNG30D","SUTINPPY","IRDSTNRV12","IRIMPCONCN","IRMJFY",
-  #Dummy columns (omit reference category dummy!)
-  "NEWRACE2_2","NEWRACE2_3","NEWRACE2_4","NEWRACE2_5","NEWRACE2_6","NEWRACE2_7",
-  "IRWRKSTAT18_2","IRWRKSTAT18_3","IRWRKSTAT18_4",
-  #Domain variable
-  "CATAGE",
-  #Design variables
-  "VEREP","VESTR_C","ANALWT2_C3"
-)
-#Create a data.frame with just the selected columns
-df <- data[, vars]
-#Build the survey design
-des <- svydesign(
-  ids     = ~VEREP,        #PSU / cluster id
-  strata  = ~VESTR_C,      #Variance strata
-  weights = ~ANALWT2_C3,   #Analysis weight (confirm the exact name)
-  data    = df,
-  nest    = TRUE
-)
-#Domain (subpopulation) restriction
-des_dom <- subset(des, CATAGE == 2)
 #Fit linear model
 fit_linear <- svyglm(
   IRSUICTHNK ~ IRMJFY + IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + INCOME +
@@ -400,7 +331,7 @@ fit_linear <- svyglm(
     IRDSTNRV12 + IRIMPCONCN +
     NEWRACE2_2 + NEWRACE2_3 + NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
     IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
-  design = des_dom,
+  design = young_adults,
   family = quasibinomial()
 )
 #Fit non-linear model
@@ -410,7 +341,7 @@ fit_rcs <- svyglm(
     IRDSTNRV12 + IRIMPCONCN +
     NEWRACE2_2 + NEWRACE2_3 + NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
     IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
-  design = des_dom,
+  design = young_adults,
   family = quasibinomial()
 )
 #Test the null hypothesis: nonlinear spline components = 0
