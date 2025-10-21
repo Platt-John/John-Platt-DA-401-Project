@@ -15,6 +15,83 @@ Ensuring assumptions are met beforehand and validating model fit, we conduct sur
 
 First, we get our dataset ready and check assumptions before performing logistic regression.
 
+```{r load in cleaned data and code binary outcome (suicidal ideation) as numerical}
+#File -> New Project -> Set existing GitHub Repository as working directory with data2 as a subfolder outside the repository and the NSDUH_2023.Rdata file in the subfolder
+#Load in the data
+load("C:/Users/John Platt/OneDrive/data2/NSDUH_2021_2023.Rdata")
+#Required packages:
+#dplyr
+library(dplyr) #data wrangling and manipulation
+#Select a subset of the 2021-2023 NSDUH data that has the 27 necessary columns
+data<-data %>% select(ANALWT2_C3,YEAR,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY,AMISUD5ANYO)
+data
+# Replace all 91s with 0 in the entire data frame
+data[data == 91] <- 0
+# Replace all 93s with 0 in the entire data frame
+data[data == 93] <- 0
+# Replace all 991s with 0 in the entire data frame
+data[data == 991] <- 0
+# Replace all 993s with 0 in the entire data frame
+data[data == 993] <- 0
+#Convert nominal columns to factors
+#Decoding of IRSEX column
+data$IRSEX<-factor(data$IRSEX, 
+                    levels=c(1,2),labels=c('Male','Female'))
+#Decoding of EDUHIGHCAT column
+data$EDUHIGHCAT<-factor(data$EDUHIGHCAT, 
+                    levels=c(1,2,3,4,5),
+                    labels=c("Less high school","High school grad","Some coll/Assoc Dg","College graduate","12 to 17 year olds"))
+#Decoding of IRPRVHLT column
+data$IRPRVHLT<-factor(data$IRPRVHLT, 
+                    levels=c(1,2),
+                    labels=c("Yes","No"))
+#Decoding of IRHHSIZ2 column
+data$IRHHSIZ2<-factor(data$IRHHSIZ2, 
+                    levels=c(1,2,3,4,5,6),
+                    labels=c("One person in household","Two people in household","Three people in household","Four people in household","Five people in household","6 or more people in household"))
+#Decoding of INCOME column
+data$INCOME<-factor(data$INCOME,
+                    levels=c(1,2,3,4),
+                    labels=c("Less than $20,000","$20,000-$49,999","$50,000-$74,999","$75,000 or More"))
+#Decoding of SUTINPPY column
+data$SUTINPPY<-factor(data$SUTINPPY, 
+                    levels=c(0,1),
+                    labels=c("No","Yes"))
+#Decoding of IRDSTNRV12 column
+data$IRDSTNRV12<-factor(data$IRDSTNRV12, 
+                    levels=c(1,2,3,4,5,99),
+                    labels=c("All of the time","Most of the time","Some of the time","A little of the time","None of the time","LEGITIMATE SKIP"))
+#Decoding of IRDSTEFF12 column
+data$IRDSTEFF12<-factor(data$IRDSTEFF12,
+                        levels=c(1,2,3,4,5,99),
+                        labels=c("All of the time","Most of the time","Some of the time","A little of the time","None of the time","LEGITIMATE SKIP"))
+#Decoding of IRIMPCONCN column
+data$IRIMPCONCN<-factor(data$IRIMPCONCN,
+                        levels=c(1,2,3,4,99),
+                        labels=c("No difficulty","Mild difficultly","Moderate difficulty","Severe difficulty","LEGITIMATE SKIP"))
+#Decoding of IRSUICTHNK column
+data$IRSUICTHNK<-factor(data$IRSUICTHNK,
+                        levels=c(0,1),
+                        labels=c("No","Yes"))
+#Decoding of IRAMDEYR column
+data$IRAMDEYR<-factor(data$IRAMDEYR,
+                        levels=c(0,1),
+                        labels=c("No","Yes"))
+#Decoding of MHTINPPY column
+data$MHTINPPY<-factor(data$MHTINPPY,
+                        levels=c(0,1),
+                        labels=c("No","Yes"))
+#Decoding of AMISUD5ANYO column
+#Note: missing values will be filtered out when examine the population subset: young adults
+data$AMISUD5ANYO<-factor(data$AMISUD5ANYO,
+                        levels=c(1,2,3,4),
+                        labels=c("SUD only, no AMI","AMI only, no SUD","SUD and AMI","Neither SUD or AMI"))
+#Code suicidal ideation variable as numeric
+data$IRSUICTHNK <- ifelse(data$IRSUICTHNK == "Yes", 1, ifelse(data$IRSUICTHNK == "No", 0, NA))
+#Check data type of dataframe columns
+str(data)
+```
+
 ```{r dummy variables and illicit substance use conversion}
 #Required packages:
 #fastDummies
@@ -35,6 +112,8 @@ data$IRHALLUCYFQ2 <- cut(data$IRHALLUCYFQ,
                     breaks = 4,   # number of categories
                     labels = c("0-90", "90-180", "180-270", "270-360"),
                     include.lowest = TRUE)
+#check data type of columns
+str(data)
 
 ```
 
@@ -62,8 +141,69 @@ ess
 ```
 
 ```{r Check for multicollinearity}
+#File -> New Project -> Set existing GitHub Repository as working directory with data2 as a subfolder outside the repository and the NSDUH_2023.Rdata file in the subfolder
+#Load in the data
+load("C:/Users/John Platt/OneDrive/data2/NSDUH_2021_2023.Rdata")
+#Required packages:
+#dplyr
+library(dplyr) #data wrangling and manipulation
+#Select a subset of the 2021-2023 NSDUH data that has the 27 necessary columns
+data<-data %>% select(ANALWT2_C3,YEAR,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY,AMISUD5ANYO)
+data
+# Replace all 91s with 0 in the entire data frame
+data[data == 91] <- 0
+# Replace all 93s with 0 in the entire data frame
+data[data == 93] <- 0
+# Replace all 991s with 0 in the entire data frame
+data[data == 991] <- 0
+# Replace all 993s with 0 in the entire data frame
+data[data == 993] <- 0
+#Required packages:
+#fastDummies
+library(fastDummies) #Dummy variable creation
+#Convert nominal variables into dummy variables and drop reference dummy to avoid "dummy variable trap"
+data <- dummy_cols(data, select_columns = c("NEWRACE2","IRWRKSTAT18"), remove_first_dummy = TRUE, remove_selected_columns = TRUE)
+head(data)
+#Convert illicit substance use variables into categories with codes
+data$IRMJFY2 <- cut(data$IRMJFY,
+                    breaks = 4,   # number of categories
+                    labels = c("0-90", "90-180", "180-270", "270-360"),
+                    include.lowest = TRUE)
+data$IRCOCFY2 <- cut(data$IRCOCFY,
+                    breaks = 4,   # number of categories
+                    labels = c("0-90", "90-180", "180-270", "270-360"),
+                    include.lowest = TRUE)
+data$IRHALLUCYFQ2 <- cut(data$IRHALLUCYFQ,
+                    breaks = 4,   # number of categories
+                    labels = c("0-90", "90-180", "180-270", "270-360"),
+                    include.lowest = TRUE)
+data$IRMJFY2 <- ifelse(data$IRMJFY2 == "0-90", 1,
+                  ifelse(data$IRMJFY2 == "90-180", 2,
+                  ifelse(data$IRMJFY2 == "180-270", 3,
+                  ifelse(data$IRMJFY2 == "270-360", 4, NA))))
+data$IRCOCFY2 <- ifelse(data$IRCOCFY2 == "0-90", 1,
+                  ifelse(data$IRCOCFY2 == "90-180", 2,
+                  ifelse(data$IRCOCFY2 == "180-270", 3,
+                  ifelse(data$IRCOCFY2 == "270-360", 4, NA))))
+data$IRHALLUCYFQ2 <- ifelse(data$IRHALLUCYFQ2 == "0-90", 1,
+                  ifelse(data$IRHALLUCYFQ2 == "90-180", 2,
+                  ifelse(data$IRHALLUCYFQ2 == "180-270", 3,
+                  ifelse(data$IRHALLUCYFQ2 == "270-360", 4, NA))))
+#Install survey package
+library(survey) #Library for survey design
+options(survey.lonely.psu = "adjust")  #common & documented choice to adjust variance if there are single psus within stratum
+#Specify survey design
+des2 <- svydesign(
+  id      = ~VEREP, #PSU/cluster id
+  strata  = ~VESTR_C, #variance strata
+  weights = ~ANALWT2_C3, #analysis weight
+  data    = data, #2021-2023 NSDUH dataframe
+  nest = TRUE
+)
+#Filter to subpop
+young_adults2 <- subset(des2, CATAGE == 2)  #CATAGE==2 for 18–25
 #Variables to include in the correlation matrix
-vars <- c("IRSEX","EDUHIGHCAT","IRPRVHLT","IRHHSIZ2","INCOME","IRALCFY","IRCIGFM","IRNICVAP30N","IRALCBNG30D","SUTINPPY","IRDSTNRV12","IRIMPCONCN","IRMJFY2","NEWRACE2_2","NEWRACE2_3","NEWRACE2_4","NEWRACE2_5","NEWRACE2_6",
+vars <- c("IRSEX","EDUHIGHCAT","IRPRVHLT","IRHHSIZ2","INCOME","IRALCFY","IRCIGFM","IRNICVAP30N","IRALCBNG30D","SUTINPPY","IRDSTNRV12","IRIMPCONCN","IRMJFY2","IRCOCFY2","IRHALLUCYFQ2","NEWRACE2_2","NEWRACE2_3","NEWRACE2_4","NEWRACE2_5","NEWRACE2_6",
 "NEWRACE2_7","IRWRKSTAT18_2","IRWRKSTAT18_3","IRWRKSTAT18_4")
 #Define a function to compute a survey-weighted correlation matrix
 survey_cor_matrix <- function(design, vars) {
@@ -112,7 +252,7 @@ survey_cor_matrix <- function(design, vars) {
 #Run the function to calculate the survey-weighted correlation matrix
 #    - des_dom is your survey design restricted to CATAGE == 2
 #    - vars is the list of usable variables
-cor_matrix <- survey_cor_matrix(young_adults, vars)
+cor_matrix <- survey_cor_matrix(young_adults2, vars)
 
 #Display the correlation matrix, rounding all values to 3 decimal places for readability
 round(cor_matrix, 3)
@@ -122,13 +262,13 @@ round(cor_matrix, 3)
 #Load the 'car' package to access the vif() function for multicollinearity checks
 library(car)
 #Extract the domain-restricted data frame (all variables available in the design)
-d  <- young_adults$variables
+d  <- young_adults2$variables
 #Extract the final analysis weights as a numeric vector aligned with 'd'
-w  <- as.numeric(weights(young_adults))
+w  <- as.numeric(weights(young_adults2))
 # Define the predictor set you plan to screen for multicollinearity
 preds <- c("IRSEX","EDUHIGHCAT","IRPRVHLT","IRHHSIZ2","INCOME","IRALCFY","IRCIGFM",
            "IRNICVAP30N","IRALCBNG30D","SUTINPPY","IRDSTNRV12","IRIMPCONCN",
-           "IRMJFY2","NEWRACE2_2","NEWRACE2_3","NEWRACE2_4","NEWRACE2_5","NEWRACE2_6",
+           "IRMJFY2","IRCOCFY2","IRHALLUCYFQ2","NEWRACE2_2","NEWRACE2_3","NEWRACE2_4","NEWRACE2_5","NEWRACE2_6",
            "NEWRACE2_7","IRWRKSTAT18_2","IRWRKSTAT18_3","IRWRKSTAT18_4")
 #Build a predictors-only data frame using the selected columns
 X  <- d[preds]
@@ -172,11 +312,418 @@ sort(vifs, decreasing = TRUE)
 
 # Logistic Regression
 
-Now we code our unadjusted and adjusted logistic regression models. 
+Now we code our unadjusted and adjusted logistic regression models.
 
 ```{r unadjusted pseudo maximum likelihood logistic regression}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ IRMJFY2, design = young_adults, family = quasibinomial())
+#Coefficients → ORs with 95% CIs
+co <- coef(fit) #Beta coefficients
+vc <- vcov(fit) #Variance-covariance matrix
+se <- sqrt(diag(vc)) #Standard error
+z  <- qnorm(0.975) #Z-score for 95% confidence interval
+#Create dataframe with estimates
+est <- data.frame(
+  term = names(co), #Model variables
+  beta = co, #Beta coefficient
+  se   = se, #Standard eror
+  OR   = exp(co), #Odds ratio
+  LCL  = exp(co - z*se), #Odds ratio lower confidence level
+  UCL  = exp(co + z*se), #Odds ratio upper confidence level
+  p    = 2*pnorm(-abs(co/se)) #P-value for odds ratio
+)
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r unadjusted pseudo maximum likelihood logistic regression}
+#Fit unadjusted logistic regression model between marijuana use and suicidal ideation
+fit <- svyglm(IRSUICTHNK ~ IRSEX, design = young_adults, family = quasibinomial())
+#Coefficients → ORs with 95% CIs
+co <- coef(fit) #Beta coefficients
+vc <- vcov(fit) #Variance-covariance matrix
+se <- sqrt(diag(vc)) #Standard error
+z  <- qnorm(0.975) #Z-score for 95% confidence interval
+#Create dataframe with estimates
+est <- data.frame(
+  term = names(co), #Model variables
+  beta = co, #Beta coefficient
+  se   = se, #Standard eror
+  OR   = exp(co), #Odds ratio
+  LCL  = exp(co - z*se), #Odds ratio lower confidence level
+  UCL  = exp(co + z*se), #Odds ratio upper confidence level
+  p    = 2*pnorm(-abs(co/se)) #P-value for odds ratio
+)
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r unadjusted pseudo maximum likelihood logistic regression}
+#Fit unadjusted logistic regression model between marijuana use and suicidal ideation
+fit <- svyglm(IRSUICTHNK ~ EDUHIGHCAT, design = young_adults, family = quasibinomial())
+#Coefficients → ORs with 95% CIs
+co <- coef(fit) #Beta coefficients
+vc <- vcov(fit) #Variance-covariance matrix
+se <- sqrt(diag(vc)) #Standard error
+z  <- qnorm(0.975) #Z-score for 95% confidence interval
+#Create dataframe with estimates
+est <- data.frame(
+  term = names(co), #Model variables
+  beta = co, #Beta coefficient
+  se   = se, #Standard eror
+  OR   = exp(co), #Odds ratio
+  LCL  = exp(co - z*se), #Odds ratio lower confidence level
+  UCL  = exp(co + z*se), #Odds ratio upper confidence level
+  p    = 2*pnorm(-abs(co/se)) #P-value for odds ratio
+)
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r unadjusted pseudo maximum likelihood logistic regression}
+#Fit unadjusted logistic regression model between marijuana use and suicidal ideation
+fit <- svyglm(IRSUICTHNK ~ IRPRVHLT, design = young_adults, family = quasibinomial())
+#Coefficients → ORs with 95% CIs
+co <- coef(fit) #Beta coefficients
+vc <- vcov(fit) #Variance-covariance matrix
+se <- sqrt(diag(vc)) #Standard error
+z  <- qnorm(0.975) #Z-score for 95% confidence interval
+#Create dataframe with estimates
+est <- data.frame(
+  term = names(co), #Model variables
+  beta = co, #Beta coefficient
+  se   = se, #Standard eror
+  OR   = exp(co), #Odds ratio
+  LCL  = exp(co - z*se), #Odds ratio lower confidence level
+  UCL  = exp(co + z*se), #Odds ratio upper confidence level
+  p    = 2*pnorm(-abs(co/se)) #P-value for odds ratio
+)
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r unadjusted pseudo maximum likelihood logistic regression}
+#Fit unadjusted logistic regression model between marijuana use and suicidal ideation
+fit <- svyglm(IRSUICTHNK ~ IRHHSIZ2, design = young_adults, family = quasibinomial())
+#Coefficients → ORs with 95% CIs
+co <- coef(fit) #Beta coefficients
+vc <- vcov(fit) #Variance-covariance matrix
+se <- sqrt(diag(vc)) #Standard error
+z  <- qnorm(0.975) #Z-score for 95% confidence interval
+#Create dataframe with estimates
+est <- data.frame(
+  term = names(co), #Model variables
+  beta = co, #Beta coefficient
+  se   = se, #Standard eror
+  OR   = exp(co), #Odds ratio
+  LCL  = exp(co - z*se), #Odds ratio lower confidence level
+  UCL  = exp(co + z*se), #Odds ratio upper confidence level
+  p    = 2*pnorm(-abs(co/se)) #P-value for odds ratio
+)
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r unadjusted pseudo maximum likelihood logistic regression}
+#Fit unadjusted logistic regression model between marijuana use and suicidal ideation
+fit <- svyglm(IRSUICTHNK ~ INCOME, design = young_adults, family = quasibinomial())
+#Coefficients → ORs with 95% CIs
+co <- coef(fit) #Beta coefficients
+vc <- vcov(fit) #Variance-covariance matrix
+se <- sqrt(diag(vc)) #Standard error
+z  <- qnorm(0.975) #Z-score for 95% confidence interval
+#Create dataframe with estimates
+est <- data.frame(
+  term = names(co), #Model variables
+  beta = co, #Beta coefficient
+  se   = se, #Standard eror
+  OR   = exp(co), #Odds ratio
+  LCL  = exp(co - z*se), #Odds ratio lower confidence level
+  UCL  = exp(co + z*se), #Odds ratio upper confidence level
+  p    = 2*pnorm(-abs(co/se)) #P-value for odds ratio
+)
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r unadjusted pseudo maximum likelihood logistic regression}
+#Fit unadjusted logistic regression model between alcohol use and suicidal ideation
+fit <- svyglm(IRSUICTHNK ~ IRALCFY, design = young_adults, family = quasibinomial())
+#Coefficients → ORs with 95% CIs
+co <- coef(fit) #Beta coefficients
+vc <- vcov(fit) #Variance-covariance matrix
+se <- sqrt(diag(vc)) #Standard error
+z  <- qnorm(0.975) #Z-score for 95% confidence interval
+#Create dataframe with estimates
+est <- data.frame(
+  term = names(co), #Model variables
+  beta = co, #Beta coefficient
+  se   = se, #Standard eror
+  OR   = exp(co), #Odds ratio
+  LCL  = exp(co - z*se), #Odds ratio lower confidence level
+  UCL  = exp(co + z*se), #Odds ratio upper confidence level
+  p    = 2*pnorm(-abs(co/se)) #P-value for odds ratio
+)
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r unadjusted pseudo maximum likelihood logistic regression}
+#Fit unadjusted logistic regression model between marijuana use and suicidal ideation
+fit <- svyglm(IRSUICTHNK ~ IRCIGFM, design = young_adults, family = quasibinomial())
+#Coefficients → ORs with 95% CIs
+co <- coef(fit) #Beta coefficients
+vc <- vcov(fit) #Variance-covariance matrix
+se <- sqrt(diag(vc)) #Standard error
+z  <- qnorm(0.975) #Z-score for 95% confidence interval
+#Create dataframe with estimates
+est <- data.frame(
+  term = names(co), #Model variables
+  beta = co, #Beta coefficient
+  se   = se, #Standard eror
+  OR   = exp(co), #Odds ratio
+  LCL  = exp(co - z*se), #Odds ratio lower confidence level
+  UCL  = exp(co + z*se), #Odds ratio upper confidence level
+  p    = 2*pnorm(-abs(co/se)) #P-value for odds ratio
+)
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r unadjusted pseudo maximum likelihood logistic regression}
+#Fit unadjusted logistic regression model between marijuana use and suicidal ideation
+fit <- svyglm(IRSUICTHNK ~ IRNICVAP30N, design = young_adults, family = quasibinomial())
+#Coefficients → ORs with 95% CIs
+co <- coef(fit) #Beta coefficients
+vc <- vcov(fit) #Variance-covariance matrix
+se <- sqrt(diag(vc)) #Standard error
+z  <- qnorm(0.975) #Z-score for 95% confidence interval
+#Create dataframe with estimates
+est <- data.frame(
+  term = names(co), #Model variables
+  beta = co, #Beta coefficient
+  se   = se, #Standard eror
+  OR   = exp(co), #Odds ratio
+  LCL  = exp(co - z*se), #Odds ratio lower confidence level
+  UCL  = exp(co + z*se), #Odds ratio upper confidence level
+  p    = 2*pnorm(-abs(co/se)) #P-value for odds ratio
+)
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r unadjusted pseudo maximum likelihood logistic regression}
+#Fit unadjusted logistic regression model between marijuana use and suicidal ideation
+fit <- svyglm(IRSUICTHNK ~ IRALCBNG30D, design = young_adults, family = quasibinomial())
+#Coefficients → ORs with 95% CIs
+co <- coef(fit) #Beta coefficients
+vc <- vcov(fit) #Variance-covariance matrix
+se <- sqrt(diag(vc)) #Standard error
+z  <- qnorm(0.975) #Z-score for 95% confidence interval
+#Create dataframe with estimates
+est <- data.frame(
+  term = names(co), #Model variables
+  beta = co, #Beta coefficient
+  se   = se, #Standard eror
+  OR   = exp(co), #Odds ratio
+  LCL  = exp(co - z*se), #Odds ratio lower confidence level
+  UCL  = exp(co + z*se), #Odds ratio upper confidence level
+  p    = 2*pnorm(-abs(co/se)) #P-value for odds ratio
+)
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r unadjusted pseudo maximum likelihood logistic regression}
+#Fit unadjusted logistic regression model between marijuana use and suicidal ideation
+fit <- svyglm(IRSUICTHNK ~ SUTINPPY, design = young_adults, family = quasibinomial())
+#Coefficients → ORs with 95% CIs
+co <- coef(fit) #Beta coefficients
+vc <- vcov(fit) #Variance-covariance matrix
+se <- sqrt(diag(vc)) #Standard error
+z  <- qnorm(0.975) #Z-score for 95% confidence interval
+#Create dataframe with estimates
+est <- data.frame(
+  term = names(co), #Model variables
+  beta = co, #Beta coefficient
+  se   = se, #Standard eror
+  OR   = exp(co), #Odds ratio
+  LCL  = exp(co - z*se), #Odds ratio lower confidence level
+  UCL  = exp(co + z*se), #Odds ratio upper confidence level
+  p    = 2*pnorm(-abs(co/se)) #P-value for odds ratio
+)
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r unadjusted pseudo maximum likelihood logistic regression}
+#Fit unadjusted logistic regression model between marijuana use and suicidal ideation
+fit <- svyglm(IRSUICTHNK ~ IRDSTNRV12, design = young_adults, family = quasibinomial())
+#Coefficients → ORs with 95% CIs
+co <- coef(fit) #Beta coefficients
+vc <- vcov(fit) #Variance-covariance matrix
+se <- sqrt(diag(vc)) #Standard error
+z  <- qnorm(0.975) #Z-score for 95% confidence interval
+#Create dataframe with estimates
+est <- data.frame(
+  term = names(co), #Model variables
+  beta = co, #Beta coefficient
+  se   = se, #Standard eror
+  OR   = exp(co), #Odds ratio
+  LCL  = exp(co - z*se), #Odds ratio lower confidence level
+  UCL  = exp(co + z*se), #Odds ratio upper confidence level
+  p    = 2*pnorm(-abs(co/se)) #P-value for odds ratio
+)
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r unadjusted pseudo maximum likelihood logistic regression}
+#Fit unadjusted logistic regression model between marijuana use and suicidal ideation
+fit <- svyglm(IRSUICTHNK ~ IRIMPCONCN, design = young_adults, family = quasibinomial())
+#Coefficients → ORs with 95% CIs
+co <- coef(fit) #Beta coefficients
+vc <- vcov(fit) #Variance-covariance matrix
+se <- sqrt(diag(vc)) #Standard error
+z  <- qnorm(0.975) #Z-score for 95% confidence interval
+#Create dataframe with estimates
+est <- data.frame(
+  term = names(co), #Model variables
+  beta = co, #Beta coefficient
+  se   = se, #Standard eror
+  OR   = exp(co), #Odds ratio
+  LCL  = exp(co - z*se), #Odds ratio lower confidence level
+  UCL  = exp(co + z*se), #Odds ratio upper confidence level
+  p    = 2*pnorm(-abs(co/se)) #P-value for odds ratio
+)
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r unadjusted pseudo maximum likelihood logistic regression}
+#Fit unadjusted logistic regression model between marijuana use and suicidal ideation
+fit <- svyglm(IRSUICTHNK ~ NEWRACE2_2 + NEWRACE2_3 + NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7, design = young_adults, family = quasibinomial())
+#Coefficients → ORs with 95% CIs
+co <- coef(fit) #Beta coefficients
+vc <- vcov(fit) #Variance-covariance matrix
+se <- sqrt(diag(vc)) #Standard error
+z  <- qnorm(0.975) #Z-score for 95% confidence interval
+#Create dataframe with estimates
+est <- data.frame(
+  term = names(co), #Model variables
+  beta = co, #Beta coefficient
+  se   = se, #Standard eror
+  OR   = exp(co), #Odds ratio
+  LCL  = exp(co - z*se), #Odds ratio lower confidence level
+  UCL  = exp(co + z*se), #Odds ratio upper confidence level
+  p    = 2*pnorm(-abs(co/se)) #P-value for odds ratio
+)
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+```{r plot residuals vs fitted values for unadjusted PML model}
+res_dev <- residuals(fit, type = "deviance")
+plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+```{r unadjusted pseudo maximum likelihood logistic regression}
+#Fit unadjusted logistic regression model between marijuana use and suicidal ideation
+fit <- svyglm(IRSUICTHNK ~ IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
 co <- coef(fit) #Beta coefficients
 vc <- vcov(fit) #Variance-covariance matrix
@@ -221,6 +768,7 @@ fit_rcs <- svyglm(
 #Test the null hypothesis: nonlinear spline components = 0
 regTermTest(fit_rcs, ~ rcs(IRMJFY))
 ```
+
 ```{r plot residuals vs fitted values for unadjusted PML model}
 res_dev <- residuals(fit_rcs, type = "deviance")
 plot(fitted(fit_rcs), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
@@ -231,9 +779,8 @@ abline(h=0, lty=2, col="red")
 ```{r adjusted pseudo maximum likelihood logistic regression}
 #Fit the adjusted PML logistic regression (quasibinomial for robust SEs)
 fit <- svyglm(
-  IRSUICTHNK ~ IRMJFY2 + IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + INCOME +
-               IRALCFY + IRCIGFM + IRNICVAP30N + IRALCBNG30D + SUTINPPY +
-               IRDSTNRV12 + IRIMPCONCN +
+  IRSUICTHNK ~ IRMJFY2 + IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + IRCIGFM + IRNICVAP30N + SUTINPPY +
+               IRDSTNRV12 + IRIMPCONCN +  IRALCFY + IRALCBNG30D +
                NEWRACE2_2 + NEWRACE2_3 + NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
                IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
   design = young_adults,
@@ -262,17 +809,16 @@ Now we add interactions into our adjusted logistic regression model (one at a ti
 
 ```{r PML adjusted logistic regression with interactions}
 #Fit the adjusted PML logistic regression (quasibinomial for robust SEs) with interactions
-fit <- svyglm(
-  IRSUICTHNK ~ IRSEX + EDUHIGHCAT + IRPRVHLT +  IRHHSIZ2 + INCOME + IRALCFY + IRCIGFM + IRNICVAP30N + IRALCBNG30D + IRMJFY2 + SUTINPPY +
+fit_int <- svyglm(
+  IRSUICTHNK ~ IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + IRCIGFM + IRNICVAP30N + IRALCFY + IRALCBNG30D + SUTINPPY +
                IRDSTNRV12 + IRIMPCONCN + 
-               NEWRACE2_2 + IRMJFY2 * NEWRACE2_3 + IRMJFY2 * NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
-               IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
+                NEWRACE2_2 + IRMJFY2 * NEWRACE2_3 + IRMJFY2 * NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 + IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
   design = young_adults,
   family = quasibinomial()
 )
 #Coefficients → ORs with 95% CIs
-co <- coef(fit)
-vc <- vcov(fit)
+co <- coef(fit_int)
+vc <- vcov(fit_int)
 se <- sqrt(diag(vc))
 z  <- qnorm(0.975)
 #Build dataframe with coefficients
@@ -288,12 +834,12 @@ est <- data.frame(
 #Drop the intercept row when reporting
 subset(est, term != "(Intercept)")
 #Do design-adjusted wald test for interaction (p-value <.05 means the relationship between cannabis use and suicidal ideation significantly differs by the interaction term and coefficient for the interaction term is not equal to 0)
-regTermTest(fit, ~ IRMJFY2:NEWRACE2_3)
+regTermTest(fit_int, ~ IRMJFY2:NEWRACE2_3)
 ```
 
 ```{r plot residuals vs fitted values for adjusted PML model}
-res_dev <- residuals(fit, type = "deviance")
-plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+res_dev <- residuals(fit_int, type = "deviance")
+plot(fitted(fit_int), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
@@ -331,3 +877,166 @@ plot(fitted(fit_rcs), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
+
+```{r see how model changes without outliers}
+#File -> New Project -> Set existing GitHub Repository as working directory with data2 as a subfolder outside the repository and the NSDUH_2023.Rdata file in the subfolder
+#Load in the data
+load("C:/Users/John Platt/OneDrive/data2/NSDUH_2021_2023.Rdata")
+#Required packages:
+#dplyr
+library(dplyr) #data wrangling and manipulation
+#Select a subset of the 2021-2023 NSDUH data that has the 27 necessary columns
+data<-data %>% select(ANALWT2_C3,YEAR,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY,AMISUD5ANYO)
+data
+# Replace all 91s with 0 in the entire data frame
+data[data == 91] <- 0
+# Replace all 93s with 0 in the entire data frame
+data[data == 93] <- 0
+# Replace all 991s with 0 in the entire data frame
+data[data == 991] <- 0
+# Replace all 993s with 0 in the entire data frame
+data[data == 993] <- 0
+#Convert nominal columns to factors
+#Decoding of IRSEX column
+data$IRSEX<-factor(data$IRSEX, 
+                    levels=c(1,2),labels=c('Male','Female'))
+#Decoding of EDUHIGHCAT column
+data$EDUHIGHCAT<-factor(data$EDUHIGHCAT, 
+                    levels=c(1,2,3,4,5),
+                    labels=c("Less high school","High school grad","Some coll/Assoc Dg","College graduate","12 to 17 year olds"))
+#Decoding of IRPRVHLT column
+data$IRPRVHLT<-factor(data$IRPRVHLT, 
+                    levels=c(1,2),
+                    labels=c("Yes","No"))
+#Decoding of IRHHSIZ2 column
+data$IRHHSIZ2<-factor(data$IRHHSIZ2, 
+                    levels=c(1,2,3,4,5,6),
+                    labels=c("One person in household","Two people in household","Three people in household","Four people in household","Five people in household","6 or more people in household"))
+#Decoding of INCOME column
+data$INCOME<-factor(data$INCOME,
+                    levels=c(1,2,3,4),
+                    labels=c("Less than $20,000","$20,000-$49,999","$50,000-$74,999","$75,000 or More"))
+#Decoding of SUTINPPY column
+data$SUTINPPY<-factor(data$SUTINPPY, 
+                    levels=c(0,1),
+                    labels=c("No","Yes"))
+#Decoding of IRDSTNRV12 column
+data$IRDSTNRV12<-factor(data$IRDSTNRV12, 
+                    levels=c(1,2,3,4,5,99),
+                    labels=c("All of the time","Most of the time","Some of the time","A little of the time","None of the time","LEGITIMATE SKIP"))
+#Decoding of IRDSTEFF12 column
+data$IRDSTEFF12<-factor(data$IRDSTEFF12,
+                        levels=c(1,2,3,4,5,99),
+                        labels=c("All of the time","Most of the time","Some of the time","A little of the time","None of the time","LEGITIMATE SKIP"))
+#Decoding of IRIMPCONCN column
+data$IRIMPCONCN<-factor(data$IRIMPCONCN,
+                        levels=c(1,2,3,4,99),
+                        labels=c("No difficulty","Mild difficultly","Moderate difficulty","Severe difficulty","LEGITIMATE SKIP"))
+#Decoding of IRSUICTHNK column
+data$IRSUICTHNK<-factor(data$IRSUICTHNK,
+                        levels=c(0,1),
+                        labels=c("No","Yes"))
+#Decoding of IRAMDEYR column
+data$IRAMDEYR<-factor(data$IRAMDEYR,
+                        levels=c(0,1),
+                        labels=c("No","Yes"))
+#Decoding of MHTINPPY column
+data$MHTINPPY<-factor(data$MHTINPPY,
+                        levels=c(0,1),
+                        labels=c("No","Yes"))
+#Decoding of AMISUD5ANYO column
+#Note: missing values will be filtered out when examine the population subset: young adults
+data$AMISUD5ANYO<-factor(data$AMISUD5ANYO,
+                        levels=c(1,2,3,4),
+                        labels=c("SUD only, no AMI","AMI only, no SUD","SUD and AMI","Neither SUD or AMI"))
+#Code suicidal ideation variable as numeric
+data$IRSUICTHNK <- ifelse(data$IRSUICTHNK == "Yes", 1, ifelse(data$IRSUICTHNK == "No", 0, NA))
+#Required packages:
+#fastDummies
+library(fastDummies) #Dummy variable creation
+#Convert nominal variables into dummy variables and drop reference dummy to avoid "dummy variable trap"
+data <- dummy_cols(data, select_columns = c("NEWRACE2","IRWRKSTAT18"), remove_first_dummy = TRUE, remove_selected_columns = TRUE)
+head(data)
+#Convert illicit substance use variables into categories
+data$IRMJFY2 <- cut(data$IRMJFY,
+                    breaks = 4,   # number of categories
+                    labels = c("0-90", "90-180", "180-270", "270-360"),
+                    include.lowest = TRUE)
+data$IRCOCFY2 <- cut(data$IRCOCFY,
+                    breaks = 4,   # number of categories
+                    labels = c("0-90", "90-180", "180-270", "270-360"),
+                    include.lowest = TRUE)
+data$IRHALLUCYFQ2 <- cut(data$IRHALLUCYFQ,
+                    breaks = 4,   # number of categories
+                    labels = c("0-90", "90-180", "180-270", "270-360"),
+                    include.lowest = TRUE)
+#Fit linear model
+fit_linear <- svyglm(
+  IRSUICTHNK ~ IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + INCOME +
+               IRALCFY + IRCIGFM + IRNICVAP30N + IRALCBNG30D + SUTINPPY +
+               IRDSTNRV12 + IRIMPCONCN +
+               NEWRACE2_2 + IRMJFY2 * NEWRACE2_3 + IRMJFY2 * NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
+               IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
+  design = young_adults,
+  family = quasibinomial()
+  
+)
+#Obtain residuals
+resids <- residuals(fit_linear, type = "deviance")
+high_resid_idx <- which(abs(resids) > 3)
+length(high_resid_idx)  #How many are flagged
+df_filtered<-data[-high_resid_idx,]
+#Recreate survey design with filtered dataset
+des_filtered <- svydesign(
+  ids = ~VEREP,
+  strata = ~VESTR_C,
+  weights = ~ANALWT2_C3,
+  data = df_filtered,
+  nest = TRUE
+)
+#Filter survey design to young adults
+young_adults3<-subset(des_filtered, CATAGE==2)
+#Fit model without outliers
+fit_filtered <- svyglm(
+  IRSUICTHNK ~ IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + INCOME +
+               IRALCFY + IRCIGFM + IRNICVAP30N + IRALCBNG30D + SUTINPPY +
+               IRDSTNRV12 + IRIMPCONCN +
+               NEWRACE2_2 + IRMJFY2 * NEWRACE2_3 + IRMJFY2 * NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
+               IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
+  design = young_adults3,
+  family = quasibinomial()
+  
+)
+#Coefficients → ORs with 95% CIs
+co <- coef(fit_filtered)
+vc <- vcov(fit_filtered)
+se <- sqrt(diag(vc))
+z  <- qnorm(0.975)
+#Data frame with estimates
+est <- data.frame(
+  term = names(co),
+  beta = co,
+  se   = se,
+  OR   = exp(co),
+  LCL  = exp(co - z*se),
+  UCL  = exp(co + z*se),
+  p    = 2*pnorm(-abs(co/se))
+)
+
+#Drop the intercept row when reporting
+subset(est, term != "(Intercept)")
+```
+
+```{r plot residuals vs fitted values for outliers adjusted PML model}
+res_dev <- residuals(fit_filtered, type = "deviance")
+plot(fitted(fit_filtered), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
+     main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
+abline(h=0, lty=2, col="red")
+```
+
+plot(predicted_lp, resids,
+         xlab = "Linear Predictor",
+         ylab = "Deviance Residuals",
+         main = "Deviance Residuals vs. Linear Predictor")
+    abline(h = 0, lty = 2, col = "grey") # Add a horizontal line at 0
+
