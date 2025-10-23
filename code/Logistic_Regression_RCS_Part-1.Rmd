@@ -114,7 +114,6 @@ data$IRHALLUCYFQ2 <- cut(data$IRHALLUCYFQ,
                     include.lowest = TRUE)
 #check data type of columns
 str(data)
-
 ```
 
 ```{r specify survey design and check sample size as well as strata and PSUs}
@@ -343,7 +342,7 @@ plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
 abline(h=0, lty=2, col="red")
 ```
 
-```{r unadjusted pseudo maximum likelihood logistic regression}
+```{r unadjusted pseudo maximum likelihood logistic regression for IRSEX}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ IRSEX, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
@@ -365,14 +364,14 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 2}
 res_dev <- residuals(fit, type = "deviance")
 plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
 
-```{r unadjusted pseudo maximum likelihood logistic regression}
+```{r unadjusted pseudo maximum likelihood logistic regression for EDUHIGHCAT}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ EDUHIGHCAT, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
@@ -395,14 +394,14 @@ subset(est, term != "(Intercept)")
 ```
 
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 3}
 res_dev <- residuals(fit, type = "deviance")
 plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
 
-```{r unadjusted pseudo maximum likelihood logistic regression}
+```{r unadjusted pseudo maximum likelihood logistic regression for IRPRVHLT}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ IRPRVHLT, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
@@ -424,14 +423,14 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 4}
 res_dev <- residuals(fit, type = "deviance")
 plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
 
-```{r unadjusted pseudo maximum likelihood logistic regression}
+```{r unadjusted pseudo maximum likelihood logistic regression for IRHHSIZ2}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ IRHHSIZ2, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
@@ -453,14 +452,14 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 5}
 res_dev <- residuals(fit, type = "deviance")
 plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
 
-```{r unadjusted pseudo maximum likelihood logistic regression}
+```{r unadjusted pseudo maximum likelihood logistic regression for INCOME}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ INCOME, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
@@ -482,14 +481,14 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 6}
 res_dev <- residuals(fit, type = "deviance")
 plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
 
-```{r unadjusted pseudo maximum likelihood logistic regression}
+```{r unadjusted pseudo maximum likelihood logistic regression FOR IRALCFY}
 #Fit unadjusted logistic regression model between alcohol use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ IRALCFY, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
@@ -511,14 +510,14 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 7}
 res_dev <- residuals(fit, type = "deviance")
 plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
 
-```{r unadjusted pseudo maximum likelihood logistic regression}
+```{r unadjusted pseudo maximum likelihood logistic regression for IRCIGFM}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ IRCIGFM, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
@@ -540,14 +539,14 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 8}
 res_dev <- residuals(fit, type = "deviance")
 plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
 
-```{r unadjusted pseudo maximum likelihood logistic regression}
+```{r unadjusted pseudo maximum likelihood logistic regression for IRNICVAP30N}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ IRNICVAP30N, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
@@ -569,14 +568,14 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 9}
 res_dev <- residuals(fit, type = "deviance")
 plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
 
-```{r unadjusted pseudo maximum likelihood logistic regression}
+```{r unadjusted pseudo maximum likelihood logistic regression for IRALCBNG30D}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ IRALCBNG30D, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
@@ -598,14 +597,14 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 10}
 res_dev <- residuals(fit, type = "deviance")
 plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
 
-```{r unadjusted pseudo maximum likelihood logistic regression}
+```{r unadjusted pseudo maximum likelihood logistic regression for SUTINPPY}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ SUTINPPY, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
@@ -627,14 +626,14 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 11}
 res_dev <- residuals(fit, type = "deviance")
 plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
 
-```{r unadjusted pseudo maximum likelihood logistic regression}
+```{r unadjusted pseudo maximum likelihood logistic regression for IRDSTNRV12}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ IRDSTNRV12, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
@@ -656,14 +655,14 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 12}
 res_dev <- residuals(fit, type = "deviance")
 plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
 
-```{r unadjusted pseudo maximum likelihood logistic regression}
+```{r unadjusted pseudo maximum likelihood logistic regression for difficulty concentrating}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ IRIMPCONCN, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
@@ -685,14 +684,14 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 13}
 res_dev <- residuals(fit, type = "deviance")
 plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
 
-```{r unadjusted pseudo maximum likelihood logistic regression}
+```{r unadjusted pseudo maximum likelihood logistic regression for NEWRACE2}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ NEWRACE2_2 + NEWRACE2_3 + NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
@@ -714,14 +713,14 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 14}
 res_dev <- residuals(fit, type = "deviance")
 plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
 
-```{r unadjusted pseudo maximum likelihood logistic regression}
+```{r unadjusted pseudo maximum likelihood logistic regression for IRWRKSTAT18}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
 fit <- svyglm(IRSUICTHNK ~ IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4, design = young_adults, family = quasibinomial())
 #Coefficients → ORs with 95% CIs
@@ -743,14 +742,14 @@ est <- data.frame(
 subset(est, term != "(Intercept)")
 ```
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 15}
 res_dev <- residuals(fit, type = "deviance")
 plot(fitted(fit), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
 abline(h=0, lty=2, col="red")
 ```
 
-```{r non-linear test, warning=FALSE, message=FALSE}
+```{r non-linear test 1, warning=FALSE, message=FALSE}
 #Required libraries: rms 
 library(rms)
 #Fit linear model
@@ -769,7 +768,7 @@ fit_rcs <- svyglm(
 regTermTest(fit_rcs, ~ rcs(IRMJFY))
 ```
 
-```{r plot residuals vs fitted values for unadjusted PML model}
+```{r plot residuals vs fitted values for unadjusted PML model 16}
 res_dev <- residuals(fit_rcs, type = "deviance")
 plot(fitted(fit_rcs), res_dev, xlab="Fitted (p-hat)", ylab="Deviance residuals",
      main="Residuals vs Fitted (Deviance)", pch=19, col="steelblue")
