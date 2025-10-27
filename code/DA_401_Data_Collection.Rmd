@@ -114,16 +114,16 @@ data$SUTINPPY<-factor(data$SUTINPPY,
                     labels=c("No","Yes"))
 #Decoding of IRDSTNRV12 column
 data$IRDSTNRV12<-factor(data$IRDSTNRV12, 
-                    levels=c(1,2,3,4,5,99),
-                    labels=c("All of the time","Most of the time","Some of the time","A little of the time","None of the time","LEGITIMATE SKIP"))
+                    levels=c(1,2,3,4,5),
+                    labels=c("All of the time","Most of the time","Some of the time","A little of the time","None of the time"))
 #Decoding of IRDSTEFF12 column
 data$IRDSTEFF12<-factor(data$IRDSTEFF12,
-                        levels=c(1,2,3,4,5,99),
-                        labels=c("All of the time","Most of the time","Some of the time","A little of the time","None of the time","LEGITIMATE SKIP"))
+                        levels=c(1,2,3,4,5),
+                        labels=c("All of the time","Most of the time","Some of the time","A little of the time","None of the time"))
 #Decoding of IRIMPCONCN column
 data$IRIMPCONCN<-factor(data$IRIMPCONCN,
-                        levels=c(1,2,3,4,99),
-                        labels=c("No difficulty","Mild difficultly","Moderate difficulty","Severe difficulty","LEGITIMATE SKIP"))
+                        levels=c(1,2,3,4),
+                        labels=c("No difficulty","Mild difficultly","Moderate difficulty","Severe difficulty"))
 #Decoding of IRSUICTHNK column
 data$IRSUICTHNK<-factor(data$IRSUICTHNK,
                         levels=c(0,1),
@@ -143,18 +143,41 @@ data$AMISUD5ANYO<-factor(data$AMISUD5ANYO,
                         labels=c("SUD only, no AMI","AMI only, no SUD","SUD and AMI","Neither SUD or AMI"))
 ```
 
-Finally, we change the values that are 91, 93, 991, or 993 to 0 (because the frequency would be 0 if they didn't use substances in the past year or past month) in the discrete substance use columns, so that future analysis of this data is easier. 
+Finally, we change the values that are 91, 93, 991, 993, or -9 to NA for those specific variables. 
 
 Then, we export the resulting data to a CSV so that it can be used easily for analysis in Python and R.
 ```{r value replacement, message=FALSE, warning=FALSE}
-# Replace all 91s with 0 in the entire data frame
-data[data == 91] <- 0
-# Replace all 93s with 0 in the entire data frame
-data[data == 93] <- 0
-# Replace all 991s with 0 in the entire data frame
-data[data == 991] <- 0
-# Replace all 993s with 0 in the entire data frame
-data[data == 993] <- 0
+#Replace missing values with NA for substance use variables
+na_codes <- list(
+  IRALCFY = c(91, 93), IRCIGFM = c(91, 93),
+  IRMJFY  = c(991, 993), IRCOCFY = c(991, 993), IRHALLUCYFQ = c(991, 993)
+)
+for (v in names(na_codes)) {
+  data[[v]] <- ifelse(data[[v]] %in% na_codes[[v]], NA, data[[v]])
+}
+# Replace -9 (missing) with NA for these three variables only
+vars_with_neg9 <- c("IRNICVAP30N", "SUTINPPY", "MHTINPPY")
+
+for (v in vars_with_neg9) {
+  if (v %in% names(data)) {
+    data[[v]][data[[v]] == -9] <- NA
+  }
+}
+#Replace the -9, 91, and 93 with NA
+na_codes <- list(
+  IRALCFY      = c(91, 93),
+  IRCIGFM      = c(91, 93),
+  IRNICVAP30N  = c(-9, 91, 93),
+  IRALCBNG30D  = c(91, 93),    # <-- add this
+  SUTINPPY     = c(-9),
+  MHTINPPY     = c(-9)
+)
+
+for (v in names(na_codes)) {
+  if (v %in% names(data)) {
+    data[[v]][data[[v]] %in% na_codes[[v]]] <- NA
+  }
+}
 
 #Export cleaned dataset to CSV
 write.csv(x = data, file = "NSDUH_2021_2023.csv")

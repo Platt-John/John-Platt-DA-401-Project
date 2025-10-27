@@ -33,6 +33,8 @@ data[data == 93] <- 0
 data[data == 991] <- 0
 # Replace all 993s with 0 in the entire data frame
 data[data == 993] <- 0
+# Replace all -9s with NA in the entire data frame
+data[data == -9] <- NA
 #Convert nominal columns to factors
 #Decoding of IRSEX column
 data$IRSEX<-factor(data$IRSEX, 
@@ -115,6 +117,66 @@ data$IRHALLUCYFQ2 <- cut(data$IRHALLUCYFQ,
 #check data type of columns
 str(data)
 ```
+
+```{r crosstabs}
+#Create crosstabs
+crosstab_table <- table(data$IRMJFY2, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$IRSEX, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$NEWRACE2_2, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$NEWRACE2_3, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$NEWRACE2_4, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$NEWRACE2_5, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$NEWRACE2_6, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$NEWRACE2_7, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$EDUHIGHCAT, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$IRWRKSTAT18_2, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$IRWRKSTAT18_3, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$IRWRKSTAT18_4, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$IRPRVHLT, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$IRHHSIZ2, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$INCOME, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$SUTINPPY, data$IRSUICTHNK)
+#Create a crosstab
+crosstab_table <- table(data$IRDSTNRV12, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$IRDSTEFF12, data$IRSUICTHNK)
+print(crosstab_table)
+#Create a crosstab
+crosstab_table <- table(data$IRIMPCONCN, data$IRSUICTHNK)
+print(crosstab_table)
+```
+
 
 ```{r specify survey design and check sample size as well as strata and PSUs}
 #Install survey package
@@ -809,7 +871,7 @@ Now we add interactions into our adjusted logistic regression model (one at a ti
 ```{r PML adjusted logistic regression with interactions}
 #Fit the adjusted PML logistic regression (quasibinomial for robust SEs) with interactions
 fit_int <- svyglm(
-  IRSUICTHNK ~ IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + IRCIGFM + IRNICVAP30N + IRALCFY + IRALCBNG30D + SUTINPPY +
+ IRSUICTHNK ~ IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + IRCIGFM + IRALCFY + IRALCBNG30D + IRNICVAP30N + SUTINPPY +
                IRDSTNRV12 + IRIMPCONCN + 
                 NEWRACE2_2 + IRMJFY2 * NEWRACE2_3 + IRMJFY2 * NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 + IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
   design = young_adults,
