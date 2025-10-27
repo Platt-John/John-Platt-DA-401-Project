@@ -835,9 +835,9 @@ for (v in vars_with_neg9) {
     data[[v]][data[[v]] == -9] &lt;- NA
   }
 }
-#Replace the -9, 91, and 93 with NA
+#Replace the -9, 91, 93, and other values with NA
 na_codes &lt;- list(
-  IRALCFY      = c(91, 93),
+  IRALCFY      = c(91, 93, 991, 993),
   IRCIGFM      = c(91, 93),
   IRNICVAP30N  = c(-9, 91, 93),
   IRALCBNG30D  = c(91, 93),    # &lt;-- add this
