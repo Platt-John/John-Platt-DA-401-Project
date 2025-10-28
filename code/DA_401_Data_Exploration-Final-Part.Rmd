@@ -40,8 +40,9 @@ svyby(
   ~IRAMDEYR, #grouping variable (two categories)
   subset(des, CATAGE == 2), #subset population
   svymean, #survey weighted mean
-  vartype = c("se", "ci")   #include SEs and 95% CIs
-)
+  vartype = c("se", "ci"),   #include SEs and 95% CIs
+  na.rm=TRUE
+  )
 ```
 
 ```{r weighted 2 sample t-test between cocaine use and MDE for young adults, include=TRUE}
@@ -53,8 +54,9 @@ svyby(
   ~IRAMDEYR, #grouping variable (two categories)
   subset(des, CATAGE == 2), #subset population
   svymean, #survey weighted mean
-  vartype = c("se", "ci")   #include SEs and 95% CIs
-)
+  vartype = c("se", "ci"),   #include SEs and 95% CIs
+  na.rm=TRUE
+  )
 ```
 
 ```{r weighted 2 sample t-test between hallucinogen use and MDE for young adults, include=TRUE}
@@ -66,8 +68,9 @@ svyby(
   ~IRAMDEYR, #grouping variable (two categories)
   subset(des, CATAGE == 2), #subset population
   svymean, #survey weighted mean
-  vartype = c("se", "ci")   #include SEs and 95% CIs
-)
+  vartype = c("se", "ci"),   #include SEs and 95% CIs
+  na.rm=TRUE
+  )
 ```
 
 ```{r weighted 2 sample t-test between marijuana use and suicidal thoughts for young adults, include=TRUE}
@@ -79,8 +82,9 @@ svyby(
   ~IRSUICTHNK, #grouping variable (two categories)
   subset(des, CATAGE == 2), #subset population
   svymean, #survey weighted mean
-  vartype = c("se", "ci")   #include SEs and 95% CIs
-)
+  vartype = c("se", "ci"),   #include SEs and 95% CIs
+  na.rm=TRUE
+  )
 ```
 
 ```{r weighted 2 sample t-test between cocaine use and suicidal thoughts for young adults, include=TRUE}
@@ -92,8 +96,9 @@ svyby(
   ~IRSUICTHNK, #grouping variable (two categories)
   subset(des, CATAGE == 2), #subset population
   svymean, #survey weighted mean
-  vartype = c("se", "ci")   #include SEs and 95% CIs
-)
+  vartype = c("se", "ci"),   #include SEs and 95% CIs
+  na.rm=TRUE
+  )
 ```
 
 ```{r weighted 2 sample t-test between hallucinogen use and suicidal thoughts for young adults, include=TRUE}
@@ -105,8 +110,9 @@ svyby(
   ~IRSUICTHNK, #grouping variable (two categories)
   subset(des, CATAGE == 2), #subset population
   svymean, #survey weighted mean
-  vartype = c("se", "ci")   #include SEs and 95% CIs
-)
+  vartype = c("se", "ci"),   #include SEs and 95% CIs
+  na.rm=TRUE
+  )
 ```
 
 ```{r weighted 2 sample t-test between marijuana use and receiving inpatient mental health treatment for young adults, include=TRUE}
@@ -118,8 +124,9 @@ svyby(
   ~MHTINPPY, #grouping variable (two categories)
   subset(des, CATAGE == 2), #subset population
   svymean, #survey weighted mean
-  vartype = c("se", "ci")   #include SEs and 95% CIs
-)
+  vartype = c("se", "ci"),   #include SEs and 95% CIs
+  na.rm=TRUE
+  )
 ```
 
 ```{r weighted 2 sample t-test between cocaine use and receiving inpatient mental health treatment for young adults, include=TRUE}
@@ -131,8 +138,9 @@ svyby(
   ~MHTINPPY, #grouping variable (two categories)
   subset(des, CATAGE == 2), #subset population
   svymean, #survey weighted mean
-  vartype = c("se", "ci")   #include SEs and 95% CIs
-)
+  vartype = c("se", "ci"),   #include SEs and 95% CIs
+  na.rm=TRUE
+  )
 ```
 
 ```{r weighted 2 sample t-test between hallucinogen use and receiving inpatient mental health treatment for young adults, include=TRUE}
@@ -144,6 +152,7 @@ svyby(
   ~MHTINPPY, #grouping variable (two categories)
   subset(des, CATAGE == 2), #subset population
   svymean, #survey weighted mean
-  vartype = c("se", "ci")   #include SEs and 95% CIs
-)
+  vartype = c("se", "ci"),   #include SEs and 95% CIs
+  na.rm=TRUE
+  )
 ```
