@@ -479,13 +479,13 @@ tt</code></pre>
 ##  Design-based t-test
 ## 
 ## data:  IRALCFY ~ IRSUICTHNK
-## t = 8.83, df = 49, p-value = 1.058e-11
+## t = 4.98, df = 49, p-value = 8.284e-06
 ## alternative hypothesis: true difference in mean is not equal to 0
 ## 95 percent confidence interval:
-##  11.76559 18.69880
+##   6.598979 15.527628
 ## sample estimates:
 ## difference in mean 
-##            15.2322</code></pre>
+##            11.0633</code></pre>
 <pre class="r"><code>svyby(
   ~IRALCFY, #outcome variable
   ~IRSUICTHNK, #grouping variable (two categories)
@@ -493,9 +493,9 @@ tt</code></pre>
   svymean, #survey weighted mean
   vartype = c(&quot;se&quot;, &quot;ci&quot;)   #include SEs and 95% CIs
 )</code></pre>
-<pre><code>##     IRSUICTHNK  IRALCFY        se     ci_l     ci_u
-## No          No 42.09598 0.6365575 40.84835 43.34361
-## Yes        Yes 57.32817 1.5725923 54.24595 60.41040</code></pre>
+<pre><code>##     IRSUICTHNK IRALCFY  se ci_l ci_u
+## No          No      NA NaN  NaN  NaN
+## Yes        Yes      NA NaN  NaN  NaN</code></pre>
 <pre class="r"><code>#Compare means within CATAGE==2
 tt &lt;- svyttest(IRCIGFM ~ IRSUICTHNK, design = subset(des, CATAGE == 2))
 tt</code></pre>
@@ -503,13 +503,13 @@ tt</code></pre>
 ##  Design-based t-test
 ## 
 ## data:  IRCIGFM ~ IRSUICTHNK
-## t = 7.846, df = 49, p-value = 3.288e-10
+## t = 1.4207, df = 49, p-value = 0.1617
 ## alternative hypothesis: true difference in mean is not equal to 0
 ## 95 percent confidence interval:
-##  0.9436627 1.5934966
+##  -0.3753147  2.1864746
 ## sample estimates:
 ## difference in mean 
-##            1.26858</code></pre>
+##          0.9055799</code></pre>
 <pre class="r"><code>svyby(
   ~IRCIGFM, #outcome variable
   ~IRSUICTHNK, #grouping variable (two categories)
@@ -517,9 +517,9 @@ tt</code></pre>
   svymean, #survey weighted mean
   vartype = c(&quot;se&quot;, &quot;ci&quot;)   #include SEs and 95% CIs
 )</code></pre>
-<pre><code>##     IRSUICTHNK  IRCIGFM         se     ci_l     ci_u
-## No          No 1.315806 0.05231423 1.213272 1.418340
-## Yes        Yes 2.584386 0.15822385 2.274273 2.894499</code></pre>
+<pre><code>##     IRSUICTHNK IRCIGFM  se ci_l ci_u
+## No          No      NA NaN  NaN  NaN
+## Yes        Yes      NA NaN  NaN  NaN</code></pre>
 <pre class="r"><code>#Compare means within CATAGE==2
 tt &lt;- svyttest(IRALCBNG30D ~ IRSUICTHNK, design = subset(des, CATAGE == 2))
 tt</code></pre>
@@ -527,13 +527,13 @@ tt</code></pre>
 ##  Design-based t-test
 ## 
 ## data:  IRALCBNG30D ~ IRSUICTHNK
-## t = 5.9913, df = 49, p-value = 2.414e-07
+## t = 4.3467, df = 49, p-value = 6.957e-05
 ## alternative hypothesis: true difference in mean is not equal to 0
 ## 95 percent confidence interval:
-##  0.3622256 0.7278584
+##  0.3452911 0.9390793
 ## sample estimates:
 ## difference in mean 
-##           0.545042</code></pre>
+##          0.6421852</code></pre>
 <pre class="r"><code>svyby(
   ~IRALCBNG30D, #outcome variable
   ~IRSUICTHNK, #grouping variable (two categories)
@@ -541,9 +541,9 @@ tt</code></pre>
   svymean, #survey weighted mean
   vartype = c(&quot;se&quot;, &quot;ci&quot;)   #include SEs and 95% CIs
 )</code></pre>
-<pre><code>##     IRSUICTHNK IRALCBNG30D         se      ci_l     ci_u
-## No          No    1.042779 0.02680801 0.9902365 1.095322
-## Yes        Yes    1.587821 0.08428992 1.4226161 1.753026</code></pre>
+<pre><code>##     IRSUICTHNK IRALCBNG30D  se ci_l ci_u
+## No          No          NA NaN  NaN  NaN
+## Yes        Yes          NA NaN  NaN  NaN</code></pre>
 <pre class="r"><code>#Compare means within CATAGE==2
 tt &lt;- svyttest(IRNICVAP30N ~ IRSUICTHNK, design = subset(des, CATAGE == 2 &amp; IRNICVAP30N != -9))
 tt</code></pre>
@@ -551,13 +551,13 @@ tt</code></pre>
 ##  Design-based t-test
 ## 
 ## data:  IRNICVAP30N ~ IRSUICTHNK
-## t = 10.239, df = 49, p-value = 9.131e-14
+## t = 2.7275, df = 49, p-value = 0.008832
 ## alternative hypothesis: true difference in mean is not equal to 0
 ## 95 percent confidence interval:
-##  2.398164 3.569371
+##  0.4455283 2.9397057
 ## sample estimates:
 ## difference in mean 
-##           2.983768</code></pre>
+##           1.692617</code></pre>
 <pre class="r"><code>svyby(
   ~IRNICVAP30N, #outcome variable
   ~IRSUICTHNK, #grouping variable (two categories)
@@ -566,8 +566,8 @@ tt</code></pre>
   vartype = c(&quot;se&quot;, &quot;ci&quot;)   #include SEs and 95% CIs
 )</code></pre>
 <pre><code>##     IRSUICTHNK IRNICVAP30N        se     ci_l     ci_u
-## No          No    4.184867 0.1157212 3.958058 4.411677
-## Yes        Yes    7.168635 0.2632264 6.652721 7.684549</code></pre>
+## No          No    18.63149 0.3364895 17.97198 19.29100
+## Yes        Yes    20.32411 0.5212103 19.30256 21.34566</code></pre>
 </div>
 <div id="weighted-chi-squared-tests" class="section level2">
 <h2>Weighted Chi-Squared Tests</h2>
@@ -685,50 +685,47 @@ svychisq(~ IRDSTNRV12 + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic 
 ##  Design-based Wald test of association
 ## 
 ## data:  svychisq(~IRDSTNRV12 + IRSUICTHNK, design = subset(des, CATAGE ==     2), statistic = &quot;adjWald&quot;)
-## F = 117.4, ndf = 5, ddf = 46, p-value &lt; 2.2e-16</code></pre>
+## F = 81.358, ndf = 4, ddf = 47, p-value &lt; 2.2e-16</code></pre>
 <pre class="r"><code># Produce contingency table
 prop.table(svytable(~ IRDSTNRV12 + IRSUICTHNK, subset(des,CATAGE == 2)), margin=2) # col % (weighted)</code></pre>
 <pre><code>##                       IRSUICTHNK
 ## IRDSTNRV12                     No        Yes
-##   A little of the time 0.05026912 0.04129699
-##   All of the time      0.06587924 0.35467838
-##   LEGITIMATE SKIP      0.61959003 0.21933880
-##   Most of the time     0.12897333 0.26438735
-##   None of the time     0.01228945 0.01049248
-##   Some of the time     0.12299883 0.10980601</code></pre>
+##   A little of the time 0.13214460 0.05290001
+##   All of the time      0.17317958 0.45433074
+##   Most of the time     0.33903772 0.33867105
+##   None of the time     0.03230579 0.01344050
+##   Some of the time     0.32333231 0.14065770</code></pre>
 <pre class="r"><code># Test association between two categorical vars
 svychisq(~ IRDSTEFF12 + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic = &quot;adjWald&quot;)</code></pre>
 <pre><code>## 
 ##  Design-based Wald test of association
 ## 
 ## data:  svychisq(~IRDSTEFF12 + IRSUICTHNK, design = subset(des, CATAGE ==     2), statistic = &quot;adjWald&quot;)
-## F = 142.49, ndf = 5, ddf = 46, p-value &lt; 2.2e-16</code></pre>
+## F = 157.74, ndf = 4, ddf = 47, p-value &lt; 2.2e-16</code></pre>
 <pre class="r"><code># Produce contingency table
 prop.table(svytable(~ IRDSTEFF12 + IRSUICTHNK, subset(des,CATAGE == 2)), margin=2) # col % (weighted)</code></pre>
 <pre><code>##                       IRSUICTHNK
 ## IRDSTEFF12                     No        Yes
-##   A little of the time 0.07045755 0.03850731
-##   All of the time      0.07344892 0.43188697
-##   LEGITIMATE SKIP      0.61959003 0.21933880
-##   Most of the time     0.09826727 0.19580097
-##   None of the time     0.03826983 0.01833857
-##   Some of the time     0.09996639 0.09612739</code></pre>
+##   A little of the time 0.18521478 0.04932653
+##   All of the time      0.19307834 0.55323227
+##   Most of the time     0.25831938 0.25081427
+##   None of the time     0.10060156 0.02349108
+##   Some of the time     0.26278594 0.12313586</code></pre>
 <pre class="r"><code># Test association between two categorical vars
 svychisq(~ IRIMPCONCN + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic = &quot;adjWald&quot;)</code></pre>
 <pre><code>## 
 ##  Design-based Wald test of association
 ## 
 ## data:  svychisq(~IRIMPCONCN + IRSUICTHNK, design = subset(des, CATAGE ==     2), statistic = &quot;adjWald&quot;)
-## F = 263.48, ndf = 4, ddf = 47, p-value &lt; 2.2e-16</code></pre>
+## F = 192.76, ndf = 3, ddf = 48, p-value &lt; 2.2e-16</code></pre>
 <pre class="r"><code># Produce contingency table
 prop.table(svytable(~ IRIMPCONCN + IRSUICTHNK, subset(des,CATAGE == 2)), margin=2) # col % (weighted)</code></pre>
 <pre><code>##                      IRSUICTHNK
-## IRIMPCONCN                     No         Yes
-##   LEGITIMATE SKIP     0.159579288 0.004019662
-##   Mild difficultly    0.284293069 0.239554271
-##   Moderate difficulty 0.180355562 0.344226474
-##   No difficulty       0.306498019 0.113458277
-##   Severe difficulty   0.069274063 0.298741316</code></pre>
+## IRIMPCONCN                    No        Yes
+##   Mild difficultly    0.33827471 0.24052108
+##   Moderate difficulty 0.21460152 0.34561573
+##   No difficulty       0.36469594 0.11391618
+##   Severe difficulty   0.08242784 0.29994700</code></pre>
 <pre class="r"><code># Test association between two categorical vars
 svychisq(~ SUTINPPY + IRSUICTHNK, design = subset(des,CATAGE == 2), statistic = &quot;adjWald&quot;)</code></pre>
 <pre><code>## 
