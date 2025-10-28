@@ -40,7 +40,8 @@ svyby(
   ~IRSUICTHNK, #grouping variable (two categories)
   subset(des, CATAGE == 2), #subset population
   svymean, #survey weighted mean
-  vartype = c("se", "ci")   #include SEs and 95% CIs
+  vartype = c("se", "ci"), #include SEs and 95% CIs
+  na.rm = TRUE 
 )
 ```
 
@@ -53,8 +54,9 @@ svyby(
   ~IRSUICTHNK, #grouping variable (two categories)
   subset(des, CATAGE == 2), #subset population
   svymean, #survey weighted mean
-  vartype = c("se", "ci")   #include SEs and 95% CIs
-)
+  vartype = c("se", "ci"),   #include SEs and 95% CIs
+ na.rm = TRUE 
+  )
 ```
 
 ```{r weighted 2 sample t-test between binge drinking and suicidal thoughts for young adults, include=TRUE}
@@ -66,8 +68,9 @@ svyby(
   ~IRSUICTHNK, #grouping variable (two categories)
   subset(des, CATAGE == 2), #subset population
   svymean, #survey weighted mean
-  vartype = c("se", "ci")   #include SEs and 95% CIs
-)
+  vartype = c("se", "ci"),   #include SEs and 95% CIs
+  na.rm = TRUE  
+  )
 ```
 
 ```{r weighted 2 sample t-test between nicotine vaping and suicidal thoughts for young adults, include=TRUE}
@@ -79,8 +82,9 @@ svyby(
   ~IRSUICTHNK, #grouping variable (two categories)
   subset(des, CATAGE == 2 & IRNICVAP30N != -9), #subset population
   svymean, #survey weighted mean
-  vartype = c("se", "ci")   #include SEs and 95% CIs
-)
+  vartype = c("se", "ci"),   #include SEs and 95% CIs
+na.rm = TRUE 
+  )
 ```
 
 ## Weighted Chi-Squared Tests

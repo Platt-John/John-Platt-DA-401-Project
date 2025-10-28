@@ -729,7 +729,7 @@ load(&quot;C:/Users/John Platt/OneDrive/data2/NSDUH_2021_2023.Rdata&quot;)</code
 <pre class="r"><code>#Required packages:
 #dplyr
 library(dplyr) #data wrangling and manipulation
-#Select a subset of the 2023 NSDUH data that has the 25 necessary columns
+#Select a subset of the 2021-2023 NSDUH data that has the 27 necessary columns
 data&lt;-data %&gt;% select(ANALWT2_C3,YEAR,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY,AMISUD5ANYO)
 data</code></pre>
 <pre><code>## # A tibble: 173,808 × 27
@@ -788,16 +788,16 @@ data$SUTINPPY&lt;-factor(data$SUTINPPY,
                     labels=c(&quot;No&quot;,&quot;Yes&quot;))
 #Decoding of IRDSTNRV12 column
 data$IRDSTNRV12&lt;-factor(data$IRDSTNRV12, 
-                    levels=c(1,2,3,4,5,99),
-                    labels=c(&quot;All of the time&quot;,&quot;Most of the time&quot;,&quot;Some of the time&quot;,&quot;A little of the time&quot;,&quot;None of the time&quot;,&quot;LEGITIMATE SKIP&quot;))
+                    levels=c(1,2,3,4,5),
+                    labels=c(&quot;All of the time&quot;,&quot;Most of the time&quot;,&quot;Some of the time&quot;,&quot;A little of the time&quot;,&quot;None of the time&quot;))
 #Decoding of IRDSTEFF12 column
 data$IRDSTEFF12&lt;-factor(data$IRDSTEFF12,
-                        levels=c(1,2,3,4,5,99),
-                        labels=c(&quot;All of the time&quot;,&quot;Most of the time&quot;,&quot;Some of the time&quot;,&quot;A little of the time&quot;,&quot;None of the time&quot;,&quot;LEGITIMATE SKIP&quot;))
+                        levels=c(1,2,3,4,5),
+                        labels=c(&quot;All of the time&quot;,&quot;Most of the time&quot;,&quot;Some of the time&quot;,&quot;A little of the time&quot;,&quot;None of the time&quot;))
 #Decoding of IRIMPCONCN column
 data$IRIMPCONCN&lt;-factor(data$IRIMPCONCN,
-                        levels=c(1,2,3,4,99),
-                        labels=c(&quot;No difficulty&quot;,&quot;Mild difficultly&quot;,&quot;Moderate difficulty&quot;,&quot;Severe difficulty&quot;,&quot;LEGITIMATE SKIP&quot;))
+                        levels=c(1,2,3,4),
+                        labels=c(&quot;No difficulty&quot;,&quot;Mild difficultly&quot;,&quot;Moderate difficulty&quot;,&quot;Severe difficulty&quot;))
 #Decoding of IRSUICTHNK column
 data$IRSUICTHNK&lt;-factor(data$IRSUICTHNK,
                         levels=c(0,1),
@@ -811,24 +811,45 @@ data$MHTINPPY&lt;-factor(data$MHTINPPY,
                         levels=c(0,1),
                         labels=c(&quot;No&quot;,&quot;Yes&quot;))
 #Decoding of AMISUD5ANYO column
-#Note: missing values will be filtered out when examine the population subset: multracial young adults
+#Note: missing values will be filtered out when examine the population subset: young adults
 data$AMISUD5ANYO&lt;-factor(data$AMISUD5ANYO,
                         levels=c(1,2,3,4),
                         labels=c(&quot;SUD only, no AMI&quot;,&quot;AMI only, no SUD&quot;,&quot;SUD and AMI&quot;,&quot;Neither SUD or AMI&quot;))</code></pre>
-<p>Finally, we change the values that are 91, 93, 991, or 993 to 0
-(because the frequency would be 0 if they didn’t use substances in the
-past year or past month) in the discrete substance use columns, so that
-future analysis of this data is easier.</p>
+<p>Finally, we change the values that are 91, 93, 991, 993, or -9 to NA
+for those specific variables.</p>
 <p>Then, we export the resulting data to a CSV so that it can be used
 easily for analysis in Python and R.</p>
-<pre class="r"><code># Replace all 91s with 0 in the entire data frame
-data[data == 91] &lt;- 0
-# Replace all 93s with 0 in the entire data frame
-data[data == 93] &lt;- 0
-# Replace all 991s with 0 in the entire data frame
-data[data == 991] &lt;- 0
-# Replace all 993s with 0 in the entire data frame
-data[data == 993] &lt;- 0
+<pre class="r"><code>#Replace missing values with NA for substance use variables
+na_codes &lt;- list(
+  IRALCFY = c(91, 93), IRCIGFM = c(91, 93),
+  IRMJFY  = c(991, 993), IRCOCFY = c(991, 993), IRHALLUCYFQ = c(991, 993)
+)
+for (v in names(na_codes)) {
+  data[[v]] &lt;- ifelse(data[[v]] %in% na_codes[[v]], NA, data[[v]])
+}
+# Replace -9 (missing) with NA for these three variables only
+vars_with_neg9 &lt;- c(&quot;IRNICVAP30N&quot;, &quot;SUTINPPY&quot;, &quot;MHTINPPY&quot;)
+
+for (v in vars_with_neg9) {
+  if (v %in% names(data)) {
+    data[[v]][data[[v]] == -9] &lt;- NA
+  }
+}
+#Replace the -9, 91, 93, and other values with NA
+na_codes &lt;- list(
+  IRALCFY      = c(91, 93, 991, 993),
+  IRCIGFM      = c(91, 93),
+  IRNICVAP30N  = c(-9, 91, 93),
+  IRALCBNG30D  = c(91, 93),    # &lt;-- add this
+  SUTINPPY     = c(-9),
+  MHTINPPY     = c(-9)
+)
+
+for (v in names(na_codes)) {
+  if (v %in% names(data)) {
+    data[[v]][data[[v]] %in% na_codes[[v]]] &lt;- NA
+  }
+}
 
 #Export cleaned dataset to CSV
 write.csv(x = data, file = &quot;NSDUH_2021_2023.csv&quot;)</code></pre>
