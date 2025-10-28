@@ -147,13 +147,19 @@ Finally, we change the values that are 91, 93, 991, 993, or -9 to NA for those s
 
 Then, we export the resulting data to a CSV so that it can be used easily for analysis in Python and R.
 ```{r value replacement, message=FALSE, warning=FALSE}
-#Replace missing values with NA for substance use variables
-na_codes <- list(
-  IRALCFY = c(91, 93), IRCIGFM = c(91, 93),
-  IRMJFY  = c(991, 993), IRCOCFY = c(991, 993), IRHALLUCYFQ = c(991, 993)
+#Replace missing values with 0 for substance use variables
+zero_codes <- list(
+  IRALCFY      = c(991, 993),
+  IRCIGFM      = c(91, 93),
+  IRMJFY       = c(991, 993),
+  IRCOCFY      = c(991, 993),
+  IRHALLUCYFQ  = c(991, 993),
+  IRNICVAP30N  = c(91, 93),  # 91/93 here mean no use as well
+  IRALCBNG30D  = c(91, 93)
 )
-for (v in names(na_codes)) {
-  data[[v]] <- ifelse(data[[v]] %in% na_codes[[v]], NA, data[[v]])
+
+for (v in names(zero_codes)) {
+  data[[v]][data[[v]] %in% zero_codes[[v]]] <- 0
 }
 # Replace -9 (missing) with NA for these three variables only
 vars_with_neg9 <- c("IRNICVAP30N", "SUTINPPY", "MHTINPPY")
@@ -161,23 +167,7 @@ vars_with_neg9 <- c("IRNICVAP30N", "SUTINPPY", "MHTINPPY")
 for (v in vars_with_neg9) {
   if (v %in% names(data)) {
     data[[v]][data[[v]] == -9] <- NA
-  }
-}
-#Replace the -9, 91, 93, and other values with NA
-na_codes <- list(
-  IRALCFY      = c(91, 93, 991, 993),
-  IRCIGFM      = c(91, 93),
-  IRNICVAP30N  = c(-9, 91, 93),
-  IRALCBNG30D  = c(91, 93),    # <-- add this
-  SUTINPPY     = c(-9),
-  MHTINPPY     = c(-9)
-)
-
-for (v in names(na_codes)) {
-  if (v %in% names(data)) {
-    data[[v]][data[[v]] %in% na_codes[[v]]] <- NA
-  }
-}
+  }}
 
 #Export cleaned dataset to CSV
 write.csv(x = data, file = "NSDUH_2021_2023.csv")
