@@ -9,7 +9,7 @@ output:
 
 ## Introduction
 
-Ensuring assumptions are met beforehand and validating model fit, we conduct survey-weighted logistic regression to examine the association between our main illicit substance use predictors (marijuana use, cocaine use, hallucinogen use) and suicidal ideation. An unadjusted model without confounders will be conducted first, and subsequently, a fully adjusted model will be done.
+Ensuring assumptions are met beforehand and validating model fit, we conduct survey-weighted logistic regression to examine the association between marijuana use and suicidal ideation. An unadjusted model without confounders will be conducted first, and subsequently, a fully adjusted model will be done.
 
 ## Meeting Logistic Regression Assumptions
 
@@ -872,9 +872,9 @@ Now we add interactions into our adjusted logistic regression model (one at a ti
 ```{r PML adjusted logistic regression with interactions}
 #Fit the adjusted PML logistic regression (quasibinomial for robust SEs) with interactions
 fit_int <- svyglm(
- IRSUICTHNK ~ IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + IRALCFY + IRALCBNG30D + IRNICVAP30N + SUTINPPY + IRCIGFM + 
-                NEWRACE2_2 + IRMJFY2 * NEWRACE2_3 + IRMJFY2 * NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 +
-               IRDSTNRV12 + IRIMPCONCN + IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
+ IRSUICTHNK ~ IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2  + IRALCFY + IRALCBNG30D + IRNICVAP30N + SUTINPPY + IRCIGFM + 
+                NEWRACE2_2 + IRMJFY2 * NEWRACE2_3 + IRMJFY2 * NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 + IRDSTNRV12 + 
+               IRIMPCONCN + IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
   design = young_adults,
   family = quasibinomial()
 )
