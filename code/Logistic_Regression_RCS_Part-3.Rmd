@@ -178,7 +178,7 @@ print(ess)
 ```
 
 # Logistic Regression 1
-We do our adjusted and unadjusted logistic regression models for subgroup 1
+We do our adjusted and unadjusted logistic regression models for subgroup 1.
 
 ```{r unadjusted pseudo maximum likelihood logistic regression}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
@@ -656,7 +656,7 @@ abline(h=0, lty=2, col="red")
 
 
 # Logistic Regression 2
-We do our adjusted and unadjusted logistic regression models for subgroup 2
+We do our adjusted and unadjusted logistic regression models for subgroup 2.
 
 ```{r unadjusted pseudo maximum likelihood logistic regression}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
@@ -1134,7 +1134,7 @@ abline(h=0, lty=2, col="red")
 
 
 # Logistic Regression 3
-We do our adjusted and unadjusted logistic regression models for subgroup 3
+We do our adjusted and unadjusted logistic regression models for subgroup 3.
 
 ```{r unadjusted pseudo maximum likelihood logistic regression}
 #Fit unadjusted logistic regression model between marijuana use and suicidal ideation
