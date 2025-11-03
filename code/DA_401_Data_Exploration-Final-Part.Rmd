@@ -156,3 +156,12 @@ svyby(
   na.rm=TRUE
   )
 ```
+
+# Weighted Mann-Whitney U Test
+Finally, we do a Mann-Whitney U test (non-parametric method) to address our marijuana use distribution not being normal.
+```{r Mann-Whitney U Test}
+##Survey-weighted Mann–Whitney (Wilcoxon rank-sum) test
+svyranktest(IRMJFY ~ IRSUICTHNK, design = subset(des, CATAGE == 2), test = "wilcoxon")
+#Table with medians
+svyby(~IRMJFY, ~IRSUICTHNK, subset(des, CATAGE == 2), svyquantile, quantiles = 0.5, ci = TRUE)
+```

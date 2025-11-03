@@ -9,7 +9,7 @@ output:
 
 ## Introduction
 
-Ensuring assumptions are met beforehand and validating model fit, we conduct survey-weighted, standardized logistic regression to examine the association between our main illicit substance use predictors (marijuana use, cocaine use, hallucinogen use) and suicidal ideation. An unadjusted model without confounders will be conducted first, and subsequently, a fully adjusted model will be done.
+Ensuring assumptions are met beforehand and validating model fit, we conduct survey-weighted, standardized logistic regression to examine the association between marijuana use and suicidal ideation. An unadjusted model without confounders will be conducted first, and subsequently, a fully adjusted model will be done.
 
 ## Meeting Logistic Regression Assumptions
 

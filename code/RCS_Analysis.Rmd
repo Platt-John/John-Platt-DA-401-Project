@@ -1,0 +1,223 @@
+---
+title: "Restricted Cubic Splines Analysis"
+author: "John Platt"
+date: "2025-10-29"
+output: html_document
+---
+
+## Introduction
+
+Ensuring assumptions are met beforehand and validating model fit, we conduct survey-weighted restricted cubic splines analysis to examine the association between marijuana use and suicidal ideation. 
+
+## Restricted Cubic Splines
+
+We load in required packages, prepare our dataset for restricted cubic splines, and specify complex survey design.
+
+```{r packages}
+# --- packages ---
+library(survey) #Design + svyglm
+library(rms) #restricted cubic splines
+library(dplyr)
+library(ggplot2)
+```
+
+```{r load in data}
+#Load in the data
+load("C:/Users/John Platt/OneDrive/data2/NSDUH_2021_2023.Rdata")
+#Select a subset of the 2021-2023 NSDUH data that has the 27 necessary columns
+data<-data %>% select(ANALWT2_C3,YEAR,VESTR_C,VEREP,IRSEX,CATAGE,NEWRACE2,EDUHIGHCAT,IRWRKSTAT18,IRHHSIZ2,IRPRVHLT,INCOME,IRALCFY,IRMJFY,IRCOCFY,IRCIGFM,IRNICVAP30N,IRHALLUCYFQ,IRALCBNG30D,SUTINPPY,IRDSTNRV12,IRDSTEFF12,IRIMPCONCN,IRSUICTHNK,IRAMDEYR,MHTINPPY,AMISUD5ANYO)
+#Decoding of IRSEX column
+data$IRSEX<-factor(data$IRSEX, 
+                    levels=c(1,2),labels=c('Male',"Female"))
+#Decoding of EDUHIGHCAT column
+data$EDUHIGHCAT<-factor(data$EDUHIGHCAT, 
+                    levels=c(1,2,3,4,5),
+                    labels=c("Less high school","High school grad","Some coll/Assoc Dg","College graduate","12 to 17 year olds"))
+#Decoding of IRPRVHLT column
+data$IRPRVHLT<-factor(data$IRPRVHLT, 
+                    levels=c(1,2),
+                    labels=c("Yes","No"))
+#Decoding of IRHHSIZ2 column
+data$IRHHSIZ2<-factor(data$IRHHSIZ2, 
+                    levels=c(1,2,3,4,5,6),
+                    labels=c("One person in household","Two people in household","Three people in household","Four people in household","Five people in household","6 or more people in household"))
+#Decoding of INCOME column
+data$INCOME<-factor(data$INCOME,
+                    levels=c(1,2,3,4),
+                    labels=c("Less than $20,000","$20,000-$49,999","$50,000-$74,999","$75,000 or More"))
+#Decoding of SUTINPPY column
+data$SUTINPPY<-factor(data$SUTINPPY, 
+                    levels=c(0,1),
+                    labels=c("No","Yes"))
+#Decoding of IRDSTNRV12 column
+data$IRDSTNRV12<-factor(data$IRDSTNRV12, 
+                    levels=c(1,2,3,4,5),
+                    labels=c("All of the time","Most of the time","Some of the time","A little of the time","None of the time"))
+#Decoding of IRDSTEFF12 column
+data$IRDSTEFF12<-factor(data$IRDSTEFF12,
+                        levels=c(1,2,3,4,5),
+                        labels=c("All of the time","Most of the time","Some of the time","A little of the time","None of the time"))
+#Decoding of IRIMPCONCN column
+data$IRIMPCONCN<-factor(data$IRIMPCONCN,
+                        levels=c(1,2,3,4),
+                        labels=c("No difficulty","Mild difficultly","Moderate difficulty","Severe difficulty"))
+#Decoding of IRSUICTHNK column
+data$IRSUICTHNK<-factor(data$IRSUICTHNK,
+                        levels=c(0,1),
+                        labels=c("No","Yes"))
+#Decoding of IRAMDEYR column
+data$IRAMDEYR<-factor(data$IRAMDEYR,
+                        levels=c(0,1),
+                        labels=c("No","Yes"))
+#Decoding of MHTINPPY column
+data$MHTINPPY<-factor(data$MHTINPPY,
+                        levels=c(0,1),
+                        labels=c("No","Yes"))
+#Decoding of AMISUD5ANYO column
+#Note: missing values will be filtered out when examine the population subset: young adults
+data$AMISUD5ANYO<-factor(data$AMISUD5ANYO,
+                        levels=c(1,2,3,4),
+                        labels=c("SUD only, no AMI","AMI only, no SUD","SUD and AMI","Neither SUD or AMI"))
+#Replace missing values with 0 for substance use variables
+zero_codes <- list(
+  IRALCFY      = c(991, 993),
+  IRCIGFM      = c(91, 93),
+  IRMJFY       = c(991, 993),
+  IRCOCFY      = c(991, 993),
+  IRHALLUCYFQ  = c(991, 993),
+  IRNICVAP30N  = c(91, 93),  # 91/93 here mean no use as well
+  IRALCBNG30D  = c(91, 93)
+)
+
+for (v in names(zero_codes)) {
+  data[[v]][data[[v]] %in% zero_codes[[v]]] <- 0
+}
+# Replace -9 (missing) with NA for these three variables only
+vars_with_neg9 <- c("IRNICVAP30N", "SUTINPPY", "MHTINPPY")
+
+for (v in vars_with_neg9) {
+  if (v %in% names(data)) {
+    data[[v]][data[[v]] == -9] <- NA
+  }}
+#Code suicidal ideation variable as numeric
+data$IRSUICTHNK <- ifelse(data$IRSUICTHNK == "Yes", 1, ifelse(data$IRSUICTHNK == "No", 0, NA))
+#See column data types
+str(data)
+```
+
+```{r specify survey design}
+# --- survey design object ---
+#Specify survey design
+des <- svydesign(
+  id      = ~VEREP, #PSU/cluster id
+  strata  = ~VESTR_C, #variance strata
+  weights = ~ANALWT2_C3, #analysis weight
+  data    = data, #2021-2023 NSDUH dataframe
+  nest = TRUE)
+```
+
+
+```{r restricted cubic splines}
+# --- Fit survey-weighted logistic regression with default RCS # Default = 5 knots 
+fit <- svyglm(IRSUICTHNK ~ rcs(IRMJFY), #Restricted cubic spline with default 5 knots 
+               design = young_adults, family = quasibinomial() ) 
+# View the model summary (optional) 
+summary(fit)
+```
+
+```{r creating visual}
+library(ggplot2)  #Install package: ggplot2
+library(rms)   #For restricted cubic splines
+
+#Build robust link-scale predictions (log-odds for logistic models) + CI from a fitted svyglm
+link_ci_from_vcov <- function(mod, newdat, level = 0.95) {
+  # Remove the response from the model terms so model.matrix builds X only for predictors
+  TT <- delete.response(terms(mod))
+
+  # Construct the model matrix for 'newdat' using the same factor contrasts/xlevels as 'mod'
+  # - contrasts.arg ensures identical treatment contrasts as in 'mod'
+  # - xlev helps when factors in newdat don't show all levels that were in the fit
+  mm <- model.matrix(TT, newdat,
+                     contrasts.arg = mod$contrasts,
+                     xlev = mod$xlevels)
+
+  # Coefficients (β) from the fitted model
+  beta <- coef(mod)
+
+  # Design-robust (sandwich) variance-covariance matrix for β from svyglm
+  V    <- vcov(mod)
+
+  # Defensive alignment: keep only columns/coeffs present in BOTH 'mm' and 'beta'
+  # (guards against dropped levels or aliased terms)
+  keep <- intersect(colnames(mm), names(beta))
+  mm   <- mm[, keep, drop = FALSE]
+  beta <- beta[keep]
+  V    <- V[keep, keep, drop = FALSE]
+
+  # Linear predictor (η = Xβ) at each row of 'mm'
+  fit <- as.numeric(mm %*% beta)
+
+  # Standard error of η using the delta method:
+  # Var(η_i) = x_i^T V x_i; compute diag(mm V mm^T) efficiently
+  se  <- sqrt(pmax(0, rowSums((mm %*% V) * mm)))
+
+  # Normal critical value for a (1-α) CI on link scale
+  z <- qnorm((1 + level)/2)
+
+  # Return newdat with link-scale fit and CI attached
+  data.frame(newdat,
+             fit = fit,
+             lwr = fit - z*se,
+             upr = fit + z*se,
+             se  = se,
+             row.names = NULL)
+}
+
+#---- 1) Log-odds curve ------------------------------------------------------
+
+#Build a grid over IRMJFY spanning its observed range in the survey design object
+newdat <- data.frame(
+  IRMJFY = seq(min(young_adults$variables$IRMJFY, na.rm = TRUE),
+               max(young_adults$variables$IRMJFY, na.rm = TRUE),
+               length.out = 200)
+)
+
+#Get link-scale predictions (log-odds) + robust CI at those grid points
+plotdat_logit <- link_ci_from_vcov(fit, newdat)
+
+#Plot log-odds with a ribbon for the 95% CI
+ggplot(plotdat_logit, aes(x = IRMJFY, y = fit)) +
+  geom_line(linewidth = 1.1) +
+  geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2) +
+  labs(x = "Past Year Marijuana Use",
+       y = "Predicted log-odds of suicidal ideation",
+       title = "Survey-weighted RCS: Past year marijuana use (days) vs log-odds of suicidal ideation") +
+  theme_minimal(base_size = 14) 
+
+#---- 2) Odds-ratio curve (vs a reference value) -----------------------------
+
+#Choose reference point on IRMJFY (median in the survey variables)
+ref_value <- median(young_adults$variables$IRMJFY, na.rm = TRUE)
+
+#Predict the link at the reference point (η_ref)
+ref_logit <- link_ci_from_vcov(fit, data.frame(IRMJFY = ref_value))$fit[1]
+
+#Convert link-scale differences to odds ratios:
+#OR(x) = exp(η(x) - η_ref); CI via the same transform
+plotdat_or <- transform(
+  plotdat_logit,
+  OR     = exp(fit - ref_logit),
+  OR_lwr = exp(lwr - ref_logit),
+  OR_upr = exp(upr - ref_logit)
+)
+
+#Plot the OR curve with CI and a horizontal line at OR=1
+ggplot(plotdat_or, aes(x = IRMJFY, y = OR)) +
+  geom_line(linewidth = 1.1) +
+  geom_ribbon(aes(ymin = OR_lwr, ymax = OR_upr), alpha = 0.2) +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  labs(x = "Past Year Marijuana Use",
+       y = paste0("Odds Ratio (vs ", signif(ref_value, 4), ")"),
+       title = "Survey-weighted RCS: Odds Ratio vs Past Year Marijuana Use (days)") +
+  theme_minimal(base_size = 14)
+```
