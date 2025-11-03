@@ -125,31 +125,46 @@ fit <- svyglm(IRSUICTHNK ~ rcs(IRMJFY), #Restricted cubic spline with default 5 
 summary(fit)
 ```
 
-```{r preparing to create visual}
-library(ggplot2)
-library(rms)   # for rcs()
+```{r creating visual}
+library(ggplot2)  #Install package: ggplot2
+library(rms)   #For restricted cubic splines
 
-# Build robust link-scale predictions + CI from a fitted svyglm
+#Build robust link-scale predictions (log-odds for logistic models) + CI from a fitted svyglm
 link_ci_from_vcov <- function(mod, newdat, level = 0.95) {
-  # remove response from the model's terms
+  # Remove the response from the model terms so model.matrix builds X only for predictors
   TT <- delete.response(terms(mod))
-  # supply contrasts/xlevels to guard against factors
+
+  # Construct the model matrix for 'newdat' using the same factor contrasts/xlevels as 'mod'
+  # - contrasts.arg ensures identical treatment contrasts as in 'mod'
+  # - xlev helps when factors in newdat don't show all levels that were in the fit
   mm <- model.matrix(TT, newdat,
                      contrasts.arg = mod$contrasts,
                      xlev = mod$xlevels)
-  beta <- coef(mod)
-  V    <- vcov(mod)  # design-robust variance
 
-  # Align columns in case of dropped levels, etc.
+  # Coefficients (β) from the fitted model
+  beta <- coef(mod)
+
+  # Design-robust (sandwich) variance-covariance matrix for β from svyglm
+  V    <- vcov(mod)
+
+  # Defensive alignment: keep only columns/coeffs present in BOTH 'mm' and 'beta'
+  # (guards against dropped levels or aliased terms)
   keep <- intersect(colnames(mm), names(beta))
   mm   <- mm[, keep, drop = FALSE]
   beta <- beta[keep]
   V    <- V[keep, keep, drop = FALSE]
 
+  # Linear predictor (η = Xβ) at each row of 'mm'
   fit <- as.numeric(mm %*% beta)
-  se  <- sqrt(pmax(0, rowSums((mm %*% V) * mm)))  # diag(mm V mm^T)
 
+  # Standard error of η using the delta method:
+  # Var(η_i) = x_i^T V x_i; compute diag(mm V mm^T) efficiently
+  se  <- sqrt(pmax(0, rowSums((mm %*% V) * mm)))
+
+  # Normal critical value for a (1-α) CI on link scale
   z <- qnorm((1 + level)/2)
+
+  # Return newdat with link-scale fit and CI attached
   data.frame(newdat,
              fit = fit,
              lwr = fit - z*se,
@@ -158,26 +173,37 @@ link_ci_from_vcov <- function(mod, newdat, level = 0.95) {
              row.names = NULL)
 }
 
-# 1) Log-odds curve
+#---- 1) Log-odds curve ------------------------------------------------------
+
+#Build a grid over IRMJFY spanning its observed range in the survey design object
 newdat <- data.frame(
   IRMJFY = seq(min(young_adults$variables$IRMJFY, na.rm = TRUE),
                max(young_adults$variables$IRMJFY, na.rm = TRUE),
                length.out = 200)
 )
 
+#Get link-scale predictions (log-odds) + robust CI at those grid points
 plotdat_logit <- link_ci_from_vcov(fit, newdat)
 
+#Plot log-odds with a ribbon for the 95% CI
 ggplot(plotdat_logit, aes(x = IRMJFY, y = fit)) +
   geom_line(linewidth = 1.1) +
   geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2) +
-  labs(x = "IRMJFY", y = "Predicted log-odds of IRSUICTHNK",
-       title = "Survey-weighted RCS: log-odds vs IRMJFY") +
-  theme_minimal(base_size = 14)
+  labs(x = "Past Year Marijuana Use",
+       y = "Predicted log-odds of suicidal ideation",
+       title = "Survey-weighted RCS: Past year marijuana use (days) vs log-odds of suicidal ideation") +
+  theme_minimal(base_size = 14) 
 
-# 2) Odds-ratio curve (vs median IRMJFY)
+#---- 2) Odds-ratio curve (vs a reference value) -----------------------------
+
+#Choose reference point on IRMJFY (median in the survey variables)
 ref_value <- median(young_adults$variables$IRMJFY, na.rm = TRUE)
+
+#Predict the link at the reference point (η_ref)
 ref_logit <- link_ci_from_vcov(fit, data.frame(IRMJFY = ref_value))$fit[1]
 
+#Convert link-scale differences to odds ratios:
+#OR(x) = exp(η(x) - η_ref); CI via the same transform
 plotdat_or <- transform(
   plotdat_logit,
   OR     = exp(fit - ref_logit),
@@ -185,13 +211,13 @@ plotdat_or <- transform(
   OR_upr = exp(upr - ref_logit)
 )
 
+#Plot the OR curve with CI and a horizontal line at OR=1
 ggplot(plotdat_or, aes(x = IRMJFY, y = OR)) +
   geom_line(linewidth = 1.1) +
   geom_ribbon(aes(ymin = OR_lwr, ymax = OR_upr), alpha = 0.2) +
   geom_hline(yintercept = 1, linetype = "dashed") +
-  labs(x = "IRMJFY", y = paste0("Odds Ratio (vs ", signif(ref_value, 4), ")"),
-       title = "Survey-weighted RCS: odds ratio vs IRMJFY") +
+  labs(x = "Past Year Marijuana Use",
+       y = paste0("Odds Ratio (vs ", signif(ref_value, 4), ")"),
+       title = "Survey-weighted RCS: odds ratio vs Past Year Marijuana Use (days)") +
   theme_minimal(base_size = 14)
-
 ```
-
