@@ -52,6 +52,8 @@ svy_sd
 svy_byvar <- svyby(~IRALCFY, ~IRSUICTHNK, design = subset(des, CATAGE == 2), FUN = svyvar, na.rm = TRUE)
 svy_byvar$sd <- sqrt(svy_byvar$IRALCFY)
 svy_byvar
+##Survey-weighted Mann–Whitney (Wilcoxon rank-sum) test
+svyranktest(IRALCFY ~ IRSUICTHNK, design = subset(des, CATAGE == 2), test = "wilcoxon")
 ```
 
 ```{r weighted 2 sample t-test between cigarette use and suicidal thoughts for young adults, include=TRUE}
@@ -75,6 +77,8 @@ svy_sd
 svy_byvar <- svyby(~IRCIGFM, ~IRSUICTHNK, design = subset(des, CATAGE == 2), FUN = svyvar, na.rm = TRUE)
 svy_byvar$sd <- sqrt(svy_byvar$IRCIGFM)
 svy_byvar
+##Survey-weighted Mann–Whitney (Wilcoxon rank-sum) test
+svyranktest(IRCIGFM ~ IRSUICTHNK, design = subset(des, CATAGE == 2), test = "wilcoxon")
 ```
 
 ```{r weighted 2 sample t-test between binge drinking and suicidal thoughts for young adults, include=TRUE}
@@ -98,6 +102,8 @@ svy_sd
 svy_byvar <- svyby(~IRALCBNG30D, ~IRSUICTHNK, design = subset(des, CATAGE == 2), FUN = svyvar, na.rm = TRUE)
 svy_byvar$sd <- sqrt(svy_byvar$IRALCBNG30D)
 svy_byvar
+##Survey-weighted Mann–Whitney (Wilcoxon rank-sum) test
+svyranktest(IRALCBNG30D ~ IRSUICTHNK, design = subset(des, CATAGE == 2), test = "wilcoxon")
 ```
 
 ```{r weighted 2 sample t-test between nicotine vaping and suicidal thoughts for young adults, include=TRUE}
@@ -121,6 +127,8 @@ svy_sd
 svy_byvar <- svyby(~IRNICVAP30N, ~IRSUICTHNK, design = subset(des, CATAGE == 2), FUN = svyvar, na.rm = TRUE)
 svy_byvar$sd <- sqrt(svy_byvar$IRNICVAP30N)
 svy_byvar
+##Survey-weighted Mann–Whitney (Wilcoxon rank-sum) test
+svyranktest(IRNICVAP30N ~ IRSUICTHNK, design = subset(des, CATAGE == 2), test = "wilcoxon")
 ```
 
 ## Weighted Chi-Squared Tests
