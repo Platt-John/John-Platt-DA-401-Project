@@ -131,7 +131,7 @@ des <- svydesign(
   nest = TRUE
 )
 #Check strata, PSUs, and effective sample size for each subgroup (subgroup 1)
-young_adults1 <- subset(des, CATAGE == 2 & IRDSTNRV12=="All of the time" | IRDSTNRV12=="Most of the time")
+young_adults1 <- subset(des, CATAGE == 2 & (IRDSTNRV12=="All of the time" | IRDSTNRV12=="Most of the time"))
 #Number of unique strata and PSUs in the subpopulation
 length(unique(young_adults1$variables$VESTR_C))
 length(unique(young_adults1$variables$VEREP))
@@ -140,7 +140,7 @@ w <- weights(young_adults1)
 ess <- (sum(w)^2) / sum(w^2)
 print(ess)
 #Subgroup2
-young_adults2 <- subset(des, CATAGE == 2 & IRDSTNRV12=="Some of the time" | IRDSTNRV12=="A little of the time" | IRDSTNRV12=="None of the time")
+young_adults2 <- subset(des, CATAGE == 2 & (IRDSTNRV12=="Some of the time" | IRDSTNRV12=="A little of the time" | IRDSTNRV12=="None of the time"))
 #Number of unique strata and PSUs in the subpopulation
 length(unique(young_adults2$variables$VESTR_C))
 length(unique(young_adults2$variables$VEREP))
