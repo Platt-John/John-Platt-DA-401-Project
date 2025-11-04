@@ -43,6 +43,15 @@ svyby(
   vartype = c("se", "ci"), #include SEs and 95% CIs
   na.rm = TRUE 
 )
+#Extract overall standard deviation of IRALCFY
+svy_var  <- svyvar(~IRALCFY, design = subset(des, CATAGE == 2))
+# Extract standard deviation
+svy_sd <- sqrt(as.numeric(svy_var))
+svy_sd
+#Extract standard deviation by group
+svy_byvar <- svyby(~IRALCFY, ~IRSUICTHNK, design = subset(des, CATAGE == 2), FUN = svyvar, na.rm = TRUE)
+svy_byvar$sd <- sqrt(svy_byvar$IRALCFY)
+svy_byvar
 ```
 
 ```{r weighted 2 sample t-test between cigarette use and suicidal thoughts for young adults, include=TRUE}
@@ -57,6 +66,15 @@ svyby(
   vartype = c("se", "ci"),   #include SEs and 95% CIs
  na.rm = TRUE 
   )
+#Extract overall standard deviation of IRCIGFM
+svy_var  <- svyvar(~IRCIGFM, design = subset(des, CATAGE == 2))
+# Extract standard deviation
+svy_sd <- sqrt(as.numeric(svy_var))
+svy_sd
+#Extract standard deviation by group
+svy_byvar <- svyby(~IRCIGFM, ~IRSUICTHNK, design = subset(des, CATAGE == 2), FUN = svyvar, na.rm = TRUE)
+svy_byvar$sd <- sqrt(svy_byvar$IRCIGFM)
+svy_byvar
 ```
 
 ```{r weighted 2 sample t-test between binge drinking and suicidal thoughts for young adults, include=TRUE}
@@ -71,6 +89,15 @@ svyby(
   vartype = c("se", "ci"),   #include SEs and 95% CIs
   na.rm = TRUE  
   )
+#Extract overall standard deviation of IRALCBNG30D
+svy_var  <- svyvar(~IRALCBNG30D, design = subset(des, CATAGE == 2))
+# Extract standard deviation
+svy_sd <- sqrt(as.numeric(svy_var))
+svy_sd
+#Extract standard deviation by group
+svy_byvar <- svyby(~IRALCBNG30D, ~IRSUICTHNK, design = subset(des, CATAGE == 2), FUN = svyvar, na.rm = TRUE)
+svy_byvar$sd <- sqrt(svy_byvar$IRALCBNG30D)
+svy_byvar
 ```
 
 ```{r weighted 2 sample t-test between nicotine vaping and suicidal thoughts for young adults, include=TRUE}
@@ -85,6 +112,15 @@ svyby(
   vartype = c("se", "ci"),   #include SEs and 95% CIs
 na.rm = TRUE 
   )
+#Extract overall standard deviation of IRNICVAP30N
+svy_var  <- svyvar(~IRNICVAP30N, design = subset(des, CATAGE == 2))
+# Extract standard deviation
+svy_sd <- sqrt(as.numeric(svy_var))
+svy_sd
+#Extract standard deviation by group
+svy_byvar <- svyby(~IRNICVAP30N, ~IRSUICTHNK, design = subset(des, CATAGE == 2), FUN = svyvar, na.rm = TRUE)
+svy_byvar$sd <- sqrt(svy_byvar$IRNICVAP30N)
+svy_byvar
 ```
 
 ## Weighted Chi-Squared Tests
