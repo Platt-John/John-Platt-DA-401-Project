@@ -85,6 +85,15 @@ svyby(
   vartype = c("se", "ci"),   #include SEs and 95% CIs
   na.rm=TRUE
   )
+#Extract overall standard deviation of IRMJFY
+svy_var  <- svyvar(~IRMJFY, design = subset(des, CATAGE == 2), na.rm = TRUE)
+#Extract standard deviation
+svy_sd <- sqrt(as.numeric(svy_var))
+svy_sd
+#Extract standard deviation by group
+svy_byvar <- svyby(~IRMJFY, ~IRSUICTHNK, design = subset(des, CATAGE == 2), FUN = svyvar, na.rm = TRUE)
+svy_byvar$sd <- sqrt(svy_byvar$IRMJFY)
+svy_byvar
 ```
 
 ```{r weighted 2 sample t-test between cocaine use and suicidal thoughts for young adults, include=TRUE}
