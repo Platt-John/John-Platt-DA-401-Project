@@ -113,7 +113,7 @@ svyby(
 na.rm = TRUE 
   )
 #Extract overall standard deviation of IRNICVAP30N
-svy_var  <- svyvar(~IRNICVAP30N, design = subset(des, CATAGE == 2))
+svy_var  <- svyvar(~IRNICVAP30N, design = subset(des, CATAGE == 2), na.rm = TRUE)
 # Extract standard deviation
 svy_sd <- sqrt(as.numeric(svy_var))
 svy_sd
