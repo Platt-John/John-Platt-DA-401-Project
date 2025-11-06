@@ -592,7 +592,7 @@ Now we add interactions into our adjusted logistic regression model (one at a ti
 ```{r PML adjusted logistic regression with interactions}
 #Fit the adjusted PML logistic regression (quasibinomial for robust SEs) with interactions
 fit_int <- svyglm(
- IRSUICTHNK ~ IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2  + IRALCFY + IRALCBNG30D + IRNICVAP30N + SUTINPPY + IRCIGFM + 
+ IRSUICTHNK ~ IRSEX + EDUHIGHCAT + IRPRVHLT + IRHHSIZ2 + IRALCFY + IRALCBNG30D + IRNICVAP30N + SUTINPPY + IRCIGFM + 
                 NEWRACE2_2 + IRMJFY2 * NEWRACE2_3 + IRMJFY2 * NEWRACE2_4 + NEWRACE2_5 + NEWRACE2_6 + NEWRACE2_7 + 
                IRIMPCONCN + IRWRKSTAT18_2 + IRWRKSTAT18_3 + IRWRKSTAT18_4,
   design = young_adults1,
