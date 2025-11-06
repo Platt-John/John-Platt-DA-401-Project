@@ -1,6 +1,6 @@
 # DA401 Capstone Project - John Platt
 
-## Illicit Substance Use and Mental Health Among Young Adults in the United States
+## Marijuana Use and Suicidal Ideation Among Young Adults in the United States
 
 ## Research Question
 To what extent is marijuana use associated with suicidal ideation among young adults aged 18-25?
