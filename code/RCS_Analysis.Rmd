@@ -2,7 +2,9 @@
 title: "Restricted Cubic Splines Analysis"
 author: "John Platt"
 date: "2025-10-29"
-output: html_document
+output: 
+  html_document:
+    code_folding: hide
 ---
 
 ## Introduction
@@ -114,6 +116,7 @@ des <- svydesign(
   weights = ~ANALWT2_C3, #analysis weight
   data    = data, #2021-2023 NSDUH dataframe
   nest = TRUE)
+young_adults <- subset(des, CATAGE == 2)  #CATAGE==2 for 18–25
 ```
 
 
