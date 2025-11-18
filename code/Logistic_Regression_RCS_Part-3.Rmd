@@ -141,6 +141,7 @@ length(unique(young_adults1$variables$VEREP))
 w <- weights(young_adults1)
 ess <- (sum(w)^2) / sum(w^2)
 print(ess)
+print(nrow(subset(data, CATAGE == 2 & (IRDSTNRV12=="All of the time" | IRDSTNRV12=="Most of the time"))))
 #Subgroup2
 young_adults2 <- subset(des, CATAGE == 2 & (IRDSTNRV12=="Some of the time" | IRDSTNRV12=="A little of the time" | IRDSTNRV12=="None of the time"))
 #Number of unique strata and PSUs in the subpopulation
@@ -150,6 +151,7 @@ length(unique(young_adults2$variables$VEREP))
 w <- weights(young_adults2)
 ess <- (sum(w)^2) / sum(w^2)
 print(ess)
+print(nrow(subset(data, CATAGE == 2 & (IRDSTNRV12=="Some of the time" | IRDSTNRV12=="A little of the time" | IRDSTNRV12=="None of the time"))))
 ```
 
 # Logistic Regression 1

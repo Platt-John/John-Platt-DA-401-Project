@@ -221,6 +221,6 @@ ggplot(plotdat_or, aes(x = IRMJFY, y = OR)) +
   geom_hline(yintercept = 1, linetype = "dashed") +
   labs(x = "Past Year Marijuana Use",
        y = paste0("Odds Ratio (vs ", signif(ref_value, 4), ")"),
-       title = "Survey-weighted RCS: Odds Ratio vs Past Year Marijuana Use (days)") +
+       title = "Survey-weighted Restricted Cubic Splines: \nOdds Ratio vs Past Year Marijuana Use (days)") +
   theme_minimal(base_size = 14)
 ```
