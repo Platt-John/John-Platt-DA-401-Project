@@ -9,7 +9,7 @@ output:
 
 ## Introduction
 
-Ensuring assumptions are met beforehand and validating model fit, we conduct survey-weighted restricted cubic splines analysis to examine the association between marijuana use and suicidal ideation. 
+Ensuring assumptions are met beforehand and validating model fit, we conduct survey-weighted restricted cubic splines analysis to examine the association between marijuana use and suicidal ideation.
 
 ## Restricted Cubic Splines
 
@@ -116,9 +116,8 @@ des <- svydesign(
   weights = ~ANALWT2_C3, #analysis weight
   data    = data, #2021-2023 NSDUH dataframe
   nest = TRUE)
-young_adults <- subset(des, CATAGE == 2)  #CATAGE==2 for 18–25
+young_adults <- subset(des, CATAGE == 2 & IRMJFY > 0)  #CATAGE==2 for 18–25
 ```
-
 
 ```{r restricted cubic splines}
 # --- Fit survey-weighted logistic regression with default RCS # Default = 5 knots 
@@ -134,40 +133,40 @@ library(rms)   #For restricted cubic splines
 
 #Build robust link-scale predictions (log-odds for logistic models) + CI from a fitted svyglm
 link_ci_from_vcov <- function(mod, newdat, level = 0.95) {
-  # Remove the response from the model terms so model.matrix builds X only for predictors
+  #Remove the response from the model terms so model.matrix builds X only for predictors
   TT <- delete.response(terms(mod))
 
-  # Construct the model matrix for 'newdat' using the same factor contrasts/xlevels as 'mod'
-  # - contrasts.arg ensures identical treatment contrasts as in 'mod'
-  # - xlev helps when factors in newdat don't show all levels that were in the fit
+  #Construct the model matrix for 'newdat' using the same factor contrasts/xlevels as 'mod'
+  #contrasts.arg ensures identical treatment contrasts as in 'mod'
+  #xlev helps when factors in newdat don't show all levels that were in the fit
   mm <- model.matrix(TT, newdat,
                      contrasts.arg = mod$contrasts,
                      xlev = mod$xlevels)
 
-  # Coefficients (β) from the fitted model
+  #Coefficients (β) from the fitted model
   beta <- coef(mod)
 
-  # Design-robust (sandwich) variance-covariance matrix for β from svyglm
+  #Design-robust (sandwich) variance-covariance matrix for β from svyglm
   V    <- vcov(mod)
 
-  # Defensive alignment: keep only columns/coeffs present in BOTH 'mm' and 'beta'
-  # (guards against dropped levels or aliased terms)
+  #Defensive alignment: keep only columns/coeffs present in BOTH 'mm' and 'beta'
+  #(guards against dropped levels or aliased terms)
   keep <- intersect(colnames(mm), names(beta))
   mm   <- mm[, keep, drop = FALSE]
   beta <- beta[keep]
   V    <- V[keep, keep, drop = FALSE]
 
-  # Linear predictor (η = Xβ) at each row of 'mm'
+  #Linear predictor (η = Xβ) at each row of 'mm'
   fit <- as.numeric(mm %*% beta)
 
-  # Standard error of η using the delta method:
-  # Var(η_i) = x_i^T V x_i; compute diag(mm V mm^T) efficiently
+  #Standard error of η using the delta method:
+  #Var(η_i) = x_i^T V x_i; compute diag(mm V mm^T) efficiently
   se  <- sqrt(pmax(0, rowSums((mm %*% V) * mm)))
 
-  # Normal critical value for a (1-α) CI on link scale
+  #Normal critical value for a (1-α) CI on link scale
   z <- qnorm((1 + level)/2)
 
-  # Return newdat with link-scale fit and CI attached
+  #Return newdat with link-scale fit and CI attached
   data.frame(newdat,
              fit = fit,
              lwr = fit - z*se,
@@ -175,28 +174,6 @@ link_ci_from_vcov <- function(mod, newdat, level = 0.95) {
              se  = se,
              row.names = NULL)
 }
-
-#---- 1) Log-odds curve ------------------------------------------------------
-
-#Build a grid over IRMJFY spanning its observed range in the survey design object
-newdat <- data.frame(
-  IRMJFY = seq(min(young_adults$variables$IRMJFY, na.rm = TRUE),
-               max(young_adults$variables$IRMJFY, na.rm = TRUE),
-               length.out = 200)
-)
-
-#Get link-scale predictions (log-odds) + robust CI at those grid points
-plotdat_logit <- link_ci_from_vcov(fit, newdat)
-
-#Plot log-odds with a ribbon for the 95% CI
-ggplot(plotdat_logit, aes(x = IRMJFY, y = fit)) +
-  geom_line(linewidth = 1.1) +
-  geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2) +
-  labs(x = "Past Year Marijuana Use",
-       y = "Predicted log-odds of suicidal ideation",
-       title = "Survey-weighted RCS: Past year marijuana use (days) vs log-odds of suicidal ideation") +
-  theme_minimal(base_size = 14) 
-
 #---- 2) Odds-ratio curve (vs a reference value) -----------------------------
 
 #Choose reference point on IRMJFY (median in the survey variables)
@@ -219,8 +196,8 @@ ggplot(plotdat_or, aes(x = IRMJFY, y = OR)) +
   geom_line(linewidth = 1.1) +
   geom_ribbon(aes(ymin = OR_lwr, ymax = OR_upr), alpha = 0.2) +
   geom_hline(yintercept = 1, linetype = "dashed") +
-  labs(x = "Past Year Marijuana Use",
-       y = paste0("Odds Ratio (vs ", signif(ref_value, 4), ")"),
+  labs(x = "Past-Year Marijuana Use",
+       y = paste0("Odds Ratio (vs Odds Ratio for ", signif(ref_value, 4)," Days of \nMarijuana Use)"),
        title = "Survey-weighted Restricted Cubic Splines: \nOdds Ratio vs Past Year Marijuana Use (days)") +
   theme_minimal(base_size = 14)
 ```
