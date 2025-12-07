@@ -174,11 +174,28 @@ link_ci_from_vcov <- function(mod, newdat, level = 0.95) {
              se  = se,
              row.names = NULL)
 }
+
+#---- 1) Log-odds curve ------------------------------------------------------
+#Build a grid over IRMJFY spanning its observed range in the survey design object
+newdat <- data.frame(
+  IRMJFY = seq(min(young_adults$variables$IRMJFY, na.rm = TRUE),
+               max(young_adults$variables$IRMJFY, na.rm = TRUE),
+               length.out = 200)
+)
+#Get link-scale predictions (log-odds) + robust CI at those grid points
+plotdat_logit <- link_ci_from_vcov(fit, newdat)
+#Plot log-odds with a ribbon for the 95% CI
+ggplot(plotdat_logit, aes(x = IRMJFY, y = fit)) +
+  geom_line(linewidth = 1.1) +
+  geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2) +
+  labs(x = "Past Year Marijuana Use",
+       y = "Predicted log-odds of suicidal ideation",
+       title = "Survey-weighted RCS: Past year marijuana use (days) vs log-odds of suicidal ideation") +
+  theme_minimal(base_size = 14) 
 #---- 2) Odds-ratio curve (vs a reference value) -----------------------------
 
 #Choose reference point on IRMJFY (median in the survey variables)
 ref_value <- median(young_adults$variables$IRMJFY, na.rm = TRUE)
-
 #Predict the link at the reference point (η_ref)
 ref_logit <- link_ci_from_vcov(fit, data.frame(IRMJFY = ref_value))$fit[1]
 
